@@ -27,7 +27,6 @@
 #include <string.h>
 #include "fft.h"
 
-
 #define SIN_ADDRESS 0x6500001
 #define COS_ADDRESS 0x6500000
 #define SUM_ADDRESS 0x6600000
@@ -76,7 +75,7 @@ float div_acc(float value_a, float value_b){
 }
 
 float cos_mod_two(float k, int n){
-	return cos_acc(2/n*mul_acc(M_PI * k));
+	return cos_acc(div_acc(mul_acc(mul_acc(2, M_PI), k), n));
 }
 
 float sin_mod_two(float k, int n){
@@ -85,11 +84,11 @@ float sin_mod_two(float k, int n){
 
 
 float cos_mod(float i, int n){
-	return cos_acc( M_PI * i * i / n);
+	return cos_acc(div_acc(mul_acc(mul_acc(M_PI, i), i), n));
 }
 
 float sin_mod(float i, int n){
-	return sin_acc( M_PI * i * i / n);
+	return sin_acc(div_acc(mul_acc(mul_acc(M_PI, i), i), n));
 }
 
 // Private function prototypes
@@ -168,12 +167,12 @@ int transform_radix2(float real[], float imag[], size_t n) {
 			size_t j;
 			size_t k;
 			for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
-				float tpre =  real[j+halfsize] * cos_mod_two(k,n) + imag[j+halfsize] * sin_mod_two(k,n);
-				float tpim = -real[j+halfsize] * sin_mod_two(k,n) + imag[j+halfsize] * cos_mod_two(k,n);
-				real[j + halfsize] = real[j] - tpre;
-				imag[j + halfsize] = imag[j] - tpim;
-				real[j] += tpre;
-				imag[j] += tpim;
+				float tpre = add_acc(mul_acc(real[j+halfsize], cos_mod_two(k,n)), mul_acc(imag[j+halfsize], sin_mod_two(k,n)));
+				float tpim = add_acc(mul_acc(-real[j+halfsize], sin_mod_two(k,n)), mul_acc(imag[j+halfsize], cos_mod_two(k,n)));
+				real[j + halfsize] = sub_acc(real[j], tpre);
+				imag[j + halfsize] = sub_acc(imag[j], tpim);
+				real[j] = add_acc(real[j],tpre);
+				imag[j] = add_acc(imag[j],tpim);
 			}
 		}
 		if (size == n)  // Prevent overflow in 'size *= 2'
@@ -241,8 +240,8 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 	
 	// Temporary vectors and preprocessing
 	for (i = 0; i < n; i++) {
-		areal[i] =  real[i] * cos_mod(i,n) + imag[i] * sin_mod(i,n);
-		aimag[i] = -real[i] * sin_mod(i,n) + imag[i] * cos_mod(i,n);
+		areal[i] = add_acc(mul_acc(real[i], cos_mod(i,n)), mul_acc(imag[i], sin_mod(i,n)));
+		aimag[i] = add_acc(mul_acc(-real[i], sin_mod(i,n)), mul_acc(imag[i], cos_mod(i,n)));
 	}
 	breal[0] = cos_mod(0,n);
 	bimag[0] = sin_mod(0,n);
@@ -257,8 +256,8 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 	
 	// Postprocessing
 	for (i = 0; i < n; i++) {
-		real[i] =  creal[i] * cos_mod(i,n) + cimag[i] * sin_mod(i,n);
-		imag[i] = -creal[i] * sin_mod(i,n) + cimag[i] * cos_mod(i,n);
+		real[i] = add_acc(mul_acc(creal[i], cos_mod(i,n)), mul_acc(cimag[i], sin_mod(i,n)));
+		imag[i] = add_acc(mul_acc(-creal[i], sin_mod(i,n)), mul_acc(cimag[i], cos_mod(i,n)));
 	}
 	status = 1;
 	
@@ -314,15 +313,15 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	if (!transform(yr, yi, n))
 		goto cleanup;
 	for (i = 0; i < n; i++) {
-		float temp = xr[i] * yr[i] - xi[i] * yi[i];
-		xi[i] = xi[i] * yr[i] + xr[i] * yi[i];
+		float temp = sub_acc(mul_acc(xr[i], yr[i]), mul_acc(xi[i], yi[i]));
+		xi[i] = add_acc(mul_acc(xi[i], yr[i]), mul_add(xr[i], yi[i]));
 		xr[i] = temp;
 	}
 	if (!inverse_transform(xr, xi, n))
 		goto cleanup;
 	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
-		outreal[i] = xr[i] / n;
-		outimag[i] = xi[i] / n;
+		outreal[i] = div(xr[i], n);
+		outimag[i] = div(xi[i], n);
 	}
 	status = 1;
 	
