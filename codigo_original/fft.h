@@ -22,44 +22,71 @@
  *   Software.
  */
 
-#pragma once
+/* 
+ * Aceleração da função de seno para ponto flutuante
+ */
+float sin_acc(float value);
 
+/* 
+ * Aceleração da função de coseno para ponto flutuante
+ */
+float cos_acc(float value);
+
+/* 
+ * Aceleração da função de soma para ponto flutuante
+ */
+float sum_acc(float value_a, float value_b);
+
+/* 
+ * Aceleração da função de subtração para ponto flutuante
+ */
+float sub_acc(float value_a, float value_b);
+
+/* 
+ * Aceleração da função de multiplicação para ponto flutuante
+ */
+float mul_acc(float value_a, float value_b);
+
+/* 
+ * Aceleração da função de divisão para ponto flutuante
+ */
+float div_acc(float value_a, float value_b);
 
 /* 
  * Computes the discrete Fourier transform (DFT) of the given complex vector, storing the result back into the vector.
  * The vector can have any length. This is a wrapper function. Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int transform(double real[], double imag[], size_t n);
+int transform(float real[], float imag[], size_t n);
 
 /* 
  * Computes the inverse discrete Fourier transform (IDFT) of the given complex vector, storing the result back into the vector.
  * The vector can have any length. This is a wrapper function. This transform does not perform scaling, so the inverse is not a true inverse.
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int inverse_transform(double real[], double imag[], size_t n);
+int inverse_transform(float real[], float imag[], size_t n);
 
 /* 
  * Computes the discrete Fourier transform (DFT) of the given complex vector, storing the result back into the vector.
  * The vector's length must be a power of 2. Uses the Cooley-Tukey decimation-in-time radix-2 algorithm.
  * Returns 1 (true) if successful, 0 (false) otherwise (n is not a power of 2, or out of memory).
  */
-int transform_radix2(double real[], double imag[], size_t n);
+int transform_radix2(float real[], float imag[], size_t n);
 
 /* 
  * Computes the discrete Fourier transform (DFT) of the given complex vector, storing the result back into the vector.
  * The vector can have any length. This requires the convolution function, which in turn requires the radix-2 FFT function.
  * Uses Bluestein's chirp z-transform algorithm. Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int transform_bluestein(double real[], double imag[], size_t n);
+int transform_bluestein(float real[], float imag[], size_t n);
 
 /* 
  * Computes the circular convolution of the given real vectors. Each vector's length must be the same.
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int convolve_real(const double x[], const double y[], double out[], size_t n);
+int convolve_real(const float x[], const float y[], float out[], size_t n);
 
 /* 
  * Computes the circular convolution of the given complex vectors. Each vector's length must be the same.
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int convolve_complex(const double xreal[], const double ximag[], const double yreal[], const double yimag[], double outreal[], double outimag[], size_t n);
+int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n);

@@ -28,6 +28,55 @@
 #include "fft.h"
 
 
+#define SIN_ADDRESS 0x6500001
+#define COS_ADDRESS 0x6500000
+#define SUM_ADDRESS 0x6600000
+#define SUB_ADDRESS 0x6700000
+#define MUL_ADDRESS 0x6800000
+#define DIV_ADDRESS 0x6900000
+#define WRITE_A     0x6700000
+#define WRITE_B     0x6700001
+
+volatile float *sin_op=(float *)  SIN_ADDRESS;
+volatile float *cos_op=(float *)  COS_ADDRESS;
+volatile float *sum_op=(float *)  SUM_ADDRESS;
+volatile float *sub_op=(float *)  SUB_ADDRESS;
+volatile float *mul_op=(float *)  MUL_ADDRESS;
+volatile float *div_op=(float *)  DIV_ADDRESS;
+volatile float *write_a=(float *) WRITE_A;
+volatile float *write_b=(float *) WRITE_B;
+
+float sin_acc(float value){
+	*sin_op = value;
+	return *sin_op;
+}
+float cos_acc(float value){
+	*cos_op = value;
+	return *cos_op;
+}
+float sum_acc(float value_a, float value_b){
+	*write_a = value_a;
+	*write_b = value_b;
+	return *sum_op;
+}
+float sub_acc(float value_a, float value_b){
+	*write_a = value_a;
+	*write_b = value_b;
+	return *sub_op;
+}
+float mul_acc(float value_a, float value_b){
+	*write_a = value_a;
+	*write_b = value_b;
+	return *mul_op;
+}
+float div_acc(float value_a, float value_b){
+	*write_a = value_a;
+	*write_b = value_b;
+	return *div_op;
+}
+
+
+
 // Private function prototypes
 static size_t reverse_bits(size_t x, unsigned int n);
 static void *memdup(const void *src, size_t n);
@@ -35,7 +84,7 @@ static void *memdup(const void *src, size_t n);
 #define SIZE_MAX ((size_t)-1)
 
 
-int transform(double real[], double imag[], size_t n) {
+int transform(float real[], float imag[], size_t n) {
 	if (n == 0)
 		return 1;
 	else if ((n & (n - 1)) == 0)  // Is power of 2
@@ -45,16 +94,16 @@ int transform(double real[], double imag[], size_t n) {
 }
 
 
-int inverse_transform(double real[], double imag[], size_t n) {
+int inverse_transform(float real[], float imag[], size_t n) {
 	return transform(imag, real, n);
 }
 
 
-int transform_radix2(double real[], double imag[], size_t n) {
+int transform_radix2(float real[], float imag[], size_t n) {
 	// Variables
 	int status = 0;
 	unsigned int levels;
-	double *cos_table, *sin_table;
+	float *cos_table, *sin_table;
 	size_t size;
 	size_t i;
 	
@@ -71,9 +120,9 @@ int transform_radix2(double real[], double imag[], size_t n) {
 	}
 	
 	// Trignometric tables
-	if (SIZE_MAX / sizeof(double) < n / 2)
+	if (SIZE_MAX / sizeof(float) < n / 2)
 		return 0;
-	size = (n / 2) * sizeof(double);
+	size = (n / 2) * sizeof(float);
 	cos_table = malloc(size);
 	sin_table = malloc(size);
 	if (cos_table == NULL || sin_table == NULL)
@@ -87,7 +136,7 @@ int transform_radix2(double real[], double imag[], size_t n) {
 	for (i = 0; i < n; i++) {
 		size_t j = reverse_bits(i, levels);
 		if (j > i) {
-			double temp = real[i];
+			float temp = real[i];
 			real[i] = real[j];
 			real[j] = temp;
 			temp = imag[i];
@@ -104,8 +153,8 @@ int transform_radix2(double real[], double imag[], size_t n) {
 			size_t j;
 			size_t k;
 			for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
-				double tpre =  real[j+halfsize] * cos_table[k] + imag[j+halfsize] * sin_table[k];
-				double tpim = -real[j+halfsize] * sin_table[k] + imag[j+halfsize] * cos_table[k];
+				float tpre =  real[j+halfsize] * cos_table[k] + imag[j+halfsize] * sin_table[k];
+				float tpim = -real[j+halfsize] * sin_table[k] + imag[j+halfsize] * cos_table[k];
 				real[j + halfsize] = real[j] - tpre;
 				imag[j + halfsize] = imag[j] - tpim;
 				real[j] += tpre;
@@ -124,13 +173,13 @@ cleanup:
 }
 
 
-int transform_bluestein(double real[], double imag[], size_t n) {
+int transform_bluestein(float real[], float imag[], size_t n) {
 	// Variables
 	int status = 0;
-	double *cos_table, *sin_table;
-	double *areal, *aimag;
-	double *breal, *bimag;
-	double *creal, *cimag;
+	float *cos_table, *sin_table;
+	float *areal, *aimag;
+	float *breal, *bimag;
+	float *creal, *cimag;
 	size_t m;
 	size_t size_n, size_m;
 	size_t i;
@@ -148,16 +197,16 @@ int transform_bluestein(double real[], double imag[], size_t n) {
 	}
 	
 	// Allocate memory
-	if (SIZE_MAX / sizeof(double) < n || SIZE_MAX / sizeof(double) < m)
+	if (SIZE_MAX / sizeof(float) < n || SIZE_MAX / sizeof(float) < m)
 		return 0;
-	size_n = n * sizeof(double);
-	size_m = m * sizeof(double);
+	size_n = n * sizeof(float);
+	size_m = m * sizeof(float);
 	cos_table = malloc(size_n);
 	sin_table = malloc(size_n);
-	areal = calloc(m, sizeof(double));
-	aimag = calloc(m, sizeof(double));
-	breal = calloc(m, sizeof(double));
-	bimag = calloc(m, sizeof(double));
+	areal = calloc(m, sizeof(float));
+	aimag = calloc(m, sizeof(float));
+	breal = calloc(m, sizeof(float));
+	bimag = calloc(m, sizeof(float));
 	creal = malloc(size_m);
 	cimag = malloc(size_m);
 	if (cos_table == NULL || sin_table == NULL
@@ -168,8 +217,8 @@ int transform_bluestein(double real[], double imag[], size_t n) {
 	
 	// Trignometric tables
 	for (i = 0; i < n; i++) {
-		double temp = M_PI * (size_t)((unsigned long long)i * i % ((unsigned long long)n * 2)) / n;
-		// Less accurate version if long long is unavailable: double temp = M_PI * i * i / n;
+		float temp = M_PI * (size_t)((unsigned long long)i * i % ((unsigned long long)n * 2)) / n;
+		// Less accurate version if long long is unavailable: float temp = M_PI * i * i / n;
 		cos_table[i] = cos(temp);
 		sin_table[i] = sin(temp);
 	}
@@ -211,12 +260,12 @@ cleanup:
 }
 
 
-int convolve_real(const double x[], const double y[], double out[], size_t n) {
-	double *ximag, *yimag, *zimag;
+int convolve_real(const float x[], const float y[], float out[], size_t n) {
+	float *ximag, *yimag, *zimag;
 	int status = 0;
-	ximag = calloc(n, sizeof(double));
-	yimag = calloc(n, sizeof(double));
-	zimag = calloc(n, sizeof(double));
+	ximag = calloc(n, sizeof(float));
+	yimag = calloc(n, sizeof(float));
+	zimag = calloc(n, sizeof(float));
 	if (ximag == NULL || yimag == NULL || zimag == NULL)
 		goto cleanup;
 	
@@ -229,14 +278,14 @@ cleanup:
 }
 
 
-int convolve_complex(const double xreal[], const double ximag[], const double yreal[], const double yimag[], double outreal[], double outimag[], size_t n) {
+int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n) {
 	int status = 0;
 	size_t size;
 	size_t i;
-	double *xr, *xi, *yr, *yi;
-	if (SIZE_MAX / sizeof(double) < n)
+	float *xr, *xi, *yr, *yi;
+	if (SIZE_MAX / sizeof(float) < n)
 		return 0;
-	size = n * sizeof(double);
+	size = n * sizeof(float);
 	xr = memdup(xreal, size);
 	xi = memdup(ximag, size);
 	yr = memdup(yreal, size);
@@ -249,7 +298,7 @@ int convolve_complex(const double xreal[], const double ximag[], const double yr
 	if (!transform(yr, yi, n))
 		goto cleanup;
 	for (i = 0; i < n; i++) {
-		double temp = xr[i] * yr[i] - xi[i] * yi[i];
+		float temp = xr[i] * yr[i] - xi[i] * yi[i];
 		xi[i] = xi[i] * yr[i] + xr[i] * yi[i];
 		xr[i] = temp;
 	}
