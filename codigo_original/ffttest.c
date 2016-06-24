@@ -68,8 +68,9 @@ int main(int argc, char **argv) {
 	}*/
 	
 	// Test power-of-2 size convolutions
-	for (i = 0; i <= 6; i++)
+	/*for (i = 0; i <= 6; i++)
 		test_convolution(1 << i);
+	*/
 	
 	// Test diverse size convolutions
 	/*prev = 0;
@@ -105,6 +106,12 @@ static void test_fft(int n) {
 	transform(actualoutreal, actualoutimag, n);
 	
 	printf("fftsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
+	
+	printf(" Parte real | Parte Imaginária\n");
+	for(int i = 0; i < n; i++){
+		printf("%10.4f  | %10.4f\n", actualoutreal[i], actualoutimag[i]);
+	}
+	
 	
 	free(inputreal);
 	free(inputimag);
