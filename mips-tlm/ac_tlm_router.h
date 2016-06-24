@@ -34,7 +34,7 @@ public:
   /// Exposed port with ArchC interface
   sc_export< ac_tlm_transport_if > target_export;
   ac_tlm_port MEM_port;
-  ac_tlm_port LOCK_port;
+  ac_tlm_port PERIPHERAL_port;
   ac_tlm_port TRIG_ACC_port;
   ac_tlm_port FLOAT_ACC_port;
   /**

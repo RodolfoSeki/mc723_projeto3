@@ -22,35 +22,58 @@
  *   Software.
  */
 
-/* 
- * Aceleração da função de seno para ponto flutuante
- */
-float sin_acc(float value);
+#ifndef FFT_H
+#define FFT_H
 
-/* 
- * Aceleração da função de coseno para ponto flutuante
- */
-float cos_acc(float value);
+#define SIN_ADDRESS 0x6500001
+#define COS_ADDRESS 0x6500000
+#define SUM_ADDRESS 0x6600000
+#define SUB_ADDRESS 0x6700000
+#define MUL_ADDRESS 0x6800000
+#define DIV_ADDRESS 0x6900000
+#define WRITE_A     0x6700000
+#define WRITE_B     0x6700001
 
-/* 
- * Aceleração da função de soma para ponto flutuante
- */
-float sum_acc(float value_a, float value_b);
+volatile float *sin_op=(float *)  SIN_ADDRESS;
+volatile float *cos_op=(float *)  COS_ADDRESS;
+volatile float *sum_op=(float *)  SUM_ADDRESS;
+volatile float *sub_op=(float *)  SUB_ADDRESS;
+volatile float *mul_op=(float *)  MUL_ADDRESS;
+volatile float *div_op=(float *)  DIV_ADDRESS;
+volatile float *write_a=(float *) WRITE_A;
+volatile float *write_b=(float *) WRITE_B;
 
-/* 
- * Aceleração da função de subtração para ponto flutuante
- */
-float sub_acc(float value_a, float value_b);
 
-/* 
- * Aceleração da função de multiplicação para ponto flutuante
- */
-float mul_acc(float value_a, float value_b);
+float sin_acc(float value){
+        *sin_op = value;
+        return *sin_op;
+}
+float cos_acc(float value){
+        *cos_op = value;
+        return *cos_op;
+}
+float sum_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *sum_op;
+}
+float sub_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *sub_op;
+}
+float mul_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *mul_op;
+}
+float div_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *div_op;
+}
 
-/* 
- * Aceleração da função de divisão para ponto flutuante
- */
-float div_acc(float value_a, float value_b);
+
 
 /* 
  * Computes the discrete Fourier transform (DFT) of the given complex vector, storing the result back into the vector.
@@ -90,3 +113,4 @@ int convolve_real(const float x[], const float y[], float out[], size_t n);
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
 int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n);
+#endif
