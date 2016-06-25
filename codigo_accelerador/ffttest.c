@@ -29,7 +29,6 @@
 #include <time.h>
 #include "fft.h"
 
-
 // Private function prototypes
 static void test_fft(int n);
 static void test_convolution(int n);
@@ -38,9 +37,7 @@ static void naive_convolve(const float *xreal, const float *ximag, const float *
 static float log10_rms_err(const float *xreal, const float *ximag, const float *yreal, const float *yimag, int n);
 static float *random_reals(int n);
 static void *memdup(const void *src, size_t n);
-
 static float max_log_error = -INFINITY;
-
 
 /* Main and test functions */
 
@@ -166,8 +163,8 @@ static void naive_dft(const float *inreal, const float *inimag, float *outreal, 
 		int t;
 		for (t = 0; t < n; t++) {  // For each input element
 			float angle = coef * ((long long)t * k % n) / n;
-			sumreal += inreal[t]*cos(angle) - inimag[t]*sin(angle);
-			sumimag += inreal[t]*sin(angle) + inimag[t]*cos(angle);
+			sumreal = sum_acc(sumreal, sub_acc(mul_acc(inreal[t],cos(angle)), mul_acc(inimag[t],sin(angle))));
+			sumimag = sum_acc(sumimag, sum_acc(mul_acc(inreal[t],sin(angle)), mul_acc(inimag[t],cos(angle))));
 		}
 		outreal[k] = sumreal;
 		outimag[k] = sumimag;
@@ -183,8 +180,8 @@ static void naive_convolve(const float *xreal, const float *ximag, const float *
 		int j;
 		for (j = 0; j < n; j++) {
 			int k = (i - j + n) % n;
-			sumreal += xreal[k] * yreal[j] - ximag[k] * yimag[j];
-			sumimag += xreal[k] * yimag[j] + ximag[k] * yreal[j];
+			sumreal = sum_acc(sumreal, sub_acc(mul_acc(xreal[k], yreal[j]), mul_acc(ximag[k], yimag[j])));
+			sumimag = sum_acc(sumimag, sum_acc(mul_acc(xreal[k], yimag[j]), mul_acc(ximag[k], yreal[j])));
 		}
 		outreal[i] = sumreal;
 		outimag[i] = sumimag;
@@ -198,7 +195,7 @@ static float log10_rms_err(const float *xreal, const float *ximag, const float *
 	float err = 0;
 	int i;
 	for (i = 0; i < n; i++)
-		err += (xreal[i] - yreal[i]) * (xreal[i] - yreal[i]) + (ximag[i] - yimag[i]) * (ximag[i] - yimag[i]);
+		err = sum_acc(err, sum_acc(mul_acc(sub_acc(xreal[i], yreal[i]), sub_acc(xreal[i], yreal[i])), mul_acc(sub_acc(ximag[i], yimag[i]), sub_acc(ximag[i], yimag[i]))));
 	
 	err /= n > 0 ? n : 1;
 	err = sqrt(err);  // Now this is a root mean square (RMS) error
@@ -213,7 +210,7 @@ static float *random_reals(int n) {
 	float *result = malloc(n * sizeof(float));
 	int i;
 	for (i = 0; i < n; i++)
-		result[i] = (rand() / (RAND_MAX + 1.0)) * 2 - 1;
+		result[i] = sub_acc(mul_acc(div_acc(rand(), sum_acc(RAND_MAX, 1.0)), 2), 1);
 	return result;
 }
 
