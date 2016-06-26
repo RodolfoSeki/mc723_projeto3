@@ -27,6 +27,44 @@
 #include <string.h>
 #include "fft.h"
 
+volatile float *sin_op = (float *)  SIN_ADDRESS;
+volatile float *cos_op = (float *)  COS_ADDRESS;
+volatile float *sum_op = (float *)  SUM_ADDRESS;
+volatile float *sub_op = (float *)  SUB_ADDRESS;
+volatile float *mul_op = (float *)  MUL_ADDRESS;
+volatile float *div_op = (float *)  DIV_ADDRESS;
+volatile float *write_a = (float *) WRITE_A;
+volatile float *write_b = (float *) WRITE_B;
+
+float sin_acc(float value){
+        *sin_op = value;
+        return *sin_op;
+}
+float cos_acc(float value){
+        *cos_op = value;
+        return *cos_op;
+}
+float sum_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *sum_op;
+}
+float sub_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *sub_op;
+}
+float mul_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *mul_op;
+}
+float div_acc(float value_a, float value_b){
+        *write_a = value_a;
+        *write_b = value_b;
+        return *div_op;
+}
+
 float cos_mod_two(float k, int n){
 	return cos_acc(div_acc(mul_acc(mul_acc(2, M_PI), k), n));
 }
@@ -119,12 +157,12 @@ int transform_radix2(float real[], float imag[], size_t n) {
 			size_t j;
 			size_t k;
 			for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
-				float tpre = add_acc(mul_acc(real[j+halfsize], cos_mod_two(k,n)), mul_acc(imag[j+halfsize], sin_mod_two(k,n)));
-				float tpim = add_acc(mul_acc(-real[j+halfsize], sin_mod_two(k,n)), mul_acc(imag[j+halfsize], cos_mod_two(k,n)));
+				float tpre = sum_acc(mul_acc(real[j+halfsize], cos_mod_two(k,n)), mul_acc(imag[j+halfsize], sin_mod_two(k,n)));
+				float tpim = sum_acc(mul_acc(-real[j+halfsize], sin_mod_two(k,n)), mul_acc(imag[j+halfsize], cos_mod_two(k,n)));
 				real[j + halfsize] = sub_acc(real[j], tpre);
 				imag[j + halfsize] = sub_acc(imag[j], tpim);
-				real[j] = add_acc(real[j],tpre);
-				imag[j] = add_acc(imag[j],tpim);
+				real[j] = sum_acc(real[j],tpre);
+				imag[j] = sum_acc(imag[j],tpim);
 			}
 		}
 		if (size == n)  // Prevent overflow in 'size *= 2'
@@ -192,8 +230,8 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 	
 	// Temporary vectors and preprocessing
 	for (i = 0; i < n; i++) {
-		areal[i] = add_acc(mul_acc(real[i], cos_mod(i,n)), mul_acc(imag[i], sin_mod(i,n)));
-		aimag[i] = add_acc(mul_acc(-real[i], sin_mod(i,n)), mul_acc(imag[i], cos_mod(i,n)));
+		areal[i] = sum_acc(mul_acc(real[i], cos_mod(i,n)), mul_acc(imag[i], sin_mod(i,n)));
+		aimag[i] = sum_acc(mul_acc(-real[i], sin_mod(i,n)), mul_acc(imag[i], cos_mod(i,n)));
 	}
 	breal[0] = cos_mod(0,n);
 	bimag[0] = sin_mod(0,n);
@@ -208,8 +246,8 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 	
 	// Postprocessing
 	for (i = 0; i < n; i++) {
-		real[i] = add_acc(mul_acc(creal[i], cos_mod(i,n)), mul_acc(cimag[i], sin_mod(i,n)));
-		imag[i] = add_acc(mul_acc(-creal[i], sin_mod(i,n)), mul_acc(cimag[i], cos_mod(i,n)));
+		real[i] = sum_acc(mul_acc(creal[i], cos_mod(i,n)), mul_acc(cimag[i], sin_mod(i,n)));
+		imag[i] = sum_acc(mul_acc(-creal[i], sin_mod(i,n)), mul_acc(cimag[i], cos_mod(i,n)));
 	}
 	status = 1;
 	
@@ -266,7 +304,7 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 		goto cleanup;
 	for (i = 0; i < n; i++) {
 		float temp = sub_acc(mul_acc(xr[i], yr[i]), mul_acc(xi[i], yi[i]));
-		xi[i] = add_acc(mul_acc(xi[i], yr[i]), mul_add(xr[i], yi[i]));
+		xi[i] = sum_acc(mul_acc(xi[i], yr[i]), mul_acc(xr[i], yi[i]));
 		xr[i] = temp;
 	}
 	if (!inverse_transform(xr, xi, n))

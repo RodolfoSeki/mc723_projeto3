@@ -42,8 +42,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-int val1;
-int val2;
+float val1;
+float val2;
 
 /// Namespace to isolate float from ArchC
 using user::ac_tlm_float;
@@ -69,7 +69,7 @@ ac_tlm_float::~ac_tlm_float() {
  */
 ac_tlm_rsp_status ac_tlm_float::writem( const uint32_t &a , const uint32_t &d )
 {
-	cout << "addr: " <<  std::hex  << a << " data: " << d << endl;
+	//cout << "writing... addr: " <<  std::hex  << a << " data: " << d << endl;
 	if (a % 2 == 0) {
 		val1 = d;
 	}
@@ -103,6 +103,7 @@ ac_tlm_rsp_status ac_tlm_float::readm( const uint32_t &a , uint32_t &d )
 	else if (a == 0x6900000) {
 		d = val1 / val2;
 	}
+	//cout << "reading... addr: " << std::hex << a << " data: " << d << endl;
 	return SUCCESS;
 }
 

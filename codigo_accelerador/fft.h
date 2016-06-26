@@ -34,44 +34,6 @@
 #define WRITE_A     0x6700000
 #define WRITE_B     0x6700001
 
-volatile float *sin_op=(float *)  SIN_ADDRESS;
-volatile float *cos_op=(float *)  COS_ADDRESS;
-volatile float *sum_op=(float *)  SUM_ADDRESS;
-volatile float *sub_op=(float *)  SUB_ADDRESS;
-volatile float *mul_op=(float *)  MUL_ADDRESS;
-volatile float *div_op=(float *)  DIV_ADDRESS;
-volatile float *write_a=(float *) WRITE_A;
-volatile float *write_b=(float *) WRITE_B;
-
-
-float sin_acc(float value){
-        *sin_op = value;
-        return *sin_op;
-}
-float cos_acc(float value){
-        *cos_op = value;
-        return *cos_op;
-}
-float sum_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *sum_op;
-}
-float sub_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *sub_op;
-}
-float mul_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *mul_op;
-}
-float div_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *div_op;
-}
 
 
 

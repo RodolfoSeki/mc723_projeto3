@@ -43,7 +43,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-int value;
+float value;
 
 /// Namespace to isolate trigonometric from ArchC
 using user::ac_tlm_trigonometric;
@@ -69,7 +69,7 @@ ac_tlm_trigonometric::~ac_tlm_trigonometric() {
  */
 ac_tlm_rsp_status ac_tlm_trigonometric::writem( const uint32_t &a , const uint32_t &d )
 {
-	cout << "addr: " <<  std::hex  << a << " data: " << d << endl;
+	//cout << "wrinting... addr: " <<  std::hex  << a << " data: " << d << endl;
 	value = d;
 	return SUCCESS;
 }
@@ -82,6 +82,7 @@ ac_tlm_rsp_status ac_tlm_trigonometric::writem( const uint32_t &a , const uint32
  */
 ac_tlm_rsp_status ac_tlm_trigonometric::readm( const uint32_t &a , uint32_t &d )
 {
+	//cout << "reading... addr: " << std::hex << a << " data: " << d << endl;
 	// Calcula coseno
 	if (a == 0x6500000) {
 		d = cos(value); 
