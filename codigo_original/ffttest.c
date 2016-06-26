@@ -93,6 +93,7 @@ static void test_fft(int n) {
 	float *inputreal, *inputimag;
 	float *refoutreal, *refoutimag;
 	float *actualoutreal, *actualoutimag;
+	int i;
 	
 	inputreal = random_reals(n);
 	inputimag = random_reals(n);
@@ -108,7 +109,7 @@ static void test_fft(int n) {
 	printf("fftsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
 	
 	printf(" Parte real | Parte Imaginária\n");
-	for(int i = 0; i < n; i++){
+	for(i = 0; i < n; i++){
 		printf("%10.4f  | %10.4f\n", actualoutreal[i], actualoutimag[i]);
 	}
 	
