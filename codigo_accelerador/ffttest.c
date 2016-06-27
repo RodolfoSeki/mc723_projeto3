@@ -28,6 +28,7 @@
 #include <string.h>
 #include <time.h>
 #include "fft.h"
+#include "input.h"
 
 // Private function prototypes
 static void test_fft(int n);
@@ -36,8 +37,11 @@ static void naive_dft(const float *inreal, const float *inimag, float *outreal, 
 static void naive_convolve(const float *xreal, const float *ximag, const float *yreal, const float *yimag, float *outreal, float *outimag, int n);
 static float log10_rms_err(const float *xreal, const float *ximag, const float *yreal, const float *yimag, int n);
 static float *random_reals(int n);
+static float *random_imag(int n);
 static void *memdup(const void *src, size_t n);
+
 static float max_log_error = -INFINITY;
+
 
 /* Main and test functions */
 
@@ -46,42 +50,12 @@ int main(int argc, char **argv) {
 	int prev;
 	srand(10);
 	
-	// Test power-of-2 size FFTs
-	for (i = 0; i <= 6; i++)
-		test_fft(1 << i);
-	
 	// Test small size FFTs
-	for (i = 0; i < 30; i++)
+	for (i = 0; i < 64; i++)
 		test_fft(i);
 	
-	// Test diverse size FFTs
-	/*prev = 0;
-	for (i = 0; i <= 100; i++) {
-		int n = (int)lround(pow(1500, i / 100.0));
-		if (n > prev) {
-			test_fft(n);
-			prev = n;
-		}
-	}*/
-	
-	// Test power-of-2 size convolutions
-	/*for (i = 0; i <= 6; i++)
-		test_convolution(1 << i);
-	*/
-	
-	// Test diverse size convolutions
-	/*prev = 0;
-	for (i = 0; i <= 100; i++) {
-		int n = (int)lround(pow(1500, i / 100.0));
-		if (n > prev) {
-			test_convolution(n);
-			prev = n;
-		}
-	}*/
-	
 	printf("\n");
-	printf("Max log err = %.1f\n", max_log_error);
-	printf("Test %s\n", max_log_error < -4 ? "passed" : "failed");
+
 	return 0;
 }
 
@@ -93,7 +67,7 @@ static void test_fft(int n) {
 	int i;
 	
 	inputreal = random_reals(n);
-	inputimag = random_reals(n);
+	inputimag = random_imag(n);
 	
 	refoutreal = malloc(n * sizeof(float));
 	refoutimag = malloc(n * sizeof(float));
@@ -105,51 +79,18 @@ static void test_fft(int n) {
 	
 	printf("fftsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
 	
+	/* Imprime o vetor de saida da transformada de Fourier*/
 	printf(" Parte real | Parte Imaginária\n");
 	for(i = 0; i < n; i++){
 		printf("%10.4f  | %10.4f\n", actualoutreal[i], actualoutimag[i]);
 	}
 	
-	
-	free(inputreal);
-	free(inputimag);
 	free(refoutreal);
 	free(refoutimag);
 	free(actualoutreal);
 	free(actualoutimag);
 }
 
-
-static void test_convolution(int n) {
-	float *input0real, *input0imag;
-	float *input1real, *input1imag;
-	float *refoutreal, *refoutimag;
-	float *actualoutreal, *actualoutimag;
-	
-	input0real = random_reals(n);
-	input0imag = random_reals(n);
-	input1real = random_reals(n);
-	input1imag = random_reals(n);
-	
-	refoutreal = malloc(n * sizeof(float));
-	refoutimag = malloc(n * sizeof(float));
-	naive_convolve(input0real, input0imag, input1real, input1imag, refoutreal, refoutimag, n);
-	
-	actualoutreal = malloc(n * sizeof(float));
-	actualoutimag = malloc(n * sizeof(float));
-	convolve_complex(input0real, input0imag, input1real, input1imag, actualoutreal, actualoutimag, n);
-	
-	printf("convsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
-	
-	free(input0real);
-	free(input0imag);
-	free(input1real);
-	free(input1imag);
-	free(refoutreal);
-	free(refoutimag);
-	free(actualoutreal);
-	free(actualoutimag);
-}
 
 
 /* Naive reference computation functions */
@@ -163,8 +104,8 @@ static void naive_dft(const float *inreal, const float *inimag, float *outreal, 
 		int t;
 		for (t = 0; t < n; t++) {  // For each input element
 			float angle = coef * ((long long)t * k % n) / n;
-			sumreal = sum_acc(sumreal, sub_acc(mul_acc(inreal[t],cos(angle)), mul_acc(inimag[t],sin(angle))));
-			sumimag = sum_acc(sumimag, sum_acc(mul_acc(inreal[t],sin(angle)), mul_acc(inimag[t],cos(angle))));
+			sumreal += inreal[t]*cos(angle) - inimag[t]*sin(angle);
+			sumimag += inreal[t]*sin(angle) + inimag[t]*cos(angle);
 		}
 		outreal[k] = sumreal;
 		outimag[k] = sumimag;
@@ -180,8 +121,8 @@ static void naive_convolve(const float *xreal, const float *ximag, const float *
 		int j;
 		for (j = 0; j < n; j++) {
 			int k = (i - j + n) % n;
-			sumreal = sum_acc(sumreal, sub_acc(mul_acc(xreal[k], yreal[j]), mul_acc(ximag[k], yimag[j])));
-			sumimag = sum_acc(sumimag, sum_acc(mul_acc(xreal[k], yimag[j]), mul_acc(ximag[k], yreal[j])));
+			sumreal += xreal[k] * yreal[j] - ximag[k] * yimag[j];
+			sumimag += xreal[k] * yimag[j] + ximag[k] * yreal[j];
 		}
 		outreal[i] = sumreal;
 		outimag[i] = sumimag;
@@ -195,7 +136,7 @@ static float log10_rms_err(const float *xreal, const float *ximag, const float *
 	float err = 0;
 	int i;
 	for (i = 0; i < n; i++)
-		err = sum_acc(err, sum_acc(mul_acc(sub_acc(xreal[i], yreal[i]), sub_acc(xreal[i], yreal[i])), mul_acc(sub_acc(ximag[i], yimag[i]), sub_acc(ximag[i], yimag[i]))));
+		err += (xreal[i] - yreal[i]) * (xreal[i] - yreal[i]) + (ximag[i] - yimag[i]) * (ximag[i] - yimag[i]);
 	
 	err /= n > 0 ? n : 1;
 	err = sqrt(err);  // Now this is a root mean square (RMS) error
@@ -207,11 +148,12 @@ static float log10_rms_err(const float *xreal, const float *ximag, const float *
 
 
 static float *random_reals(int n) {
-	float *result = malloc(n * sizeof(float));
-	int i;
-	for (i = 0; i < n; i++)
-		result[i] = sub_acc(mul_acc(div_acc(rand(), sum_acc(RAND_MAX, 1.0)), 2), 1);
-	return result;
+	return input_real[n];
+}
+
+
+static float *random_imag(int n) {
+	return input_imag[n];
 }
 
 
