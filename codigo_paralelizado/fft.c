@@ -150,7 +150,7 @@ int inverse_transform(float real[], float imag[], size_t n) {
 }
 
 
-int transform_radix2(float real[], float imag[], size_t n) {
+int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	// Variables
 	int status = 0;
 	unsigned int levels;
