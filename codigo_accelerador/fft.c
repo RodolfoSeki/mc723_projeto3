@@ -25,44 +25,51 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "fft.h"
 
-volatile float *sin_op = (float *)  SIN_ADDRESS;
-volatile float *cos_op = (float *)  COS_ADDRESS;
-volatile float *sum_op = (float *)  SUM_ADDRESS;
-volatile float *sub_op = (float *)  SUB_ADDRESS;
-volatile float *mul_op = (float *)  MUL_ADDRESS;
-volatile float *div_op = (float *)  DIV_ADDRESS;
-volatile float *write_a = (float *) WRITE_A;
-volatile float *write_b = (float *) WRITE_B;
+volatile int *lock = (volatile int *) LOCK_ADDRESS;
+
+volatile int *sin_op = (volatile int *)  SIN_ADDRESS;
+volatile int *cos_op = (volatile int *)  COS_ADDRESS;
+
+volatile int *sum_op = (volatile int *)  SUM_ADDRESS;
+volatile int *sub_op = (volatile int *)  SUB_ADDRESS;
+volatile int *mul_op = (volatile int *)  MUL_ADDRESS;
+volatile int *div_op = (volatile int *)  DIV_ADDRESS;
+
+volatile int *write_a = (volatile int *) WRITE_A;
+volatile int *write_b = (volatile int *) WRITE_B;
 
 float sin_acc(float value){
-        *sin_op = value;
-        return *sin_op;
+        *sin_op = *((uint32_t*)&value);
+        return *((float*)&(*sin_op));
 }
 float cos_acc(float value){
-        *cos_op = value;
-        return *cos_op;
+        *cos_op = *((uint32_t*)&value);
+        return *((float*)&(*cos_op));
 }
-float sum_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *sum_op;
+
+float sum_acc (float value_a, float value_b){
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*sum_op));
 }
+
 float sub_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *sub_op;
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*sub_op));
 }
 float mul_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *mul_op;
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*mul_op));
 }
 float div_acc(float value_a, float value_b){
-        *write_a = value_a;
-        *write_b = value_b;
-        return *div_op;
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*div_op));
 }
 
 float cos_mod_two(float k, int n){
@@ -85,7 +92,7 @@ float sin_mod(float i, int n){
 static size_t reverse_bits(size_t x, unsigned int n);
 static void *memdup(const void *src, size_t n);
 
-#define SIZE_MAX ((size_t)-1)
+#define N_MAX ((size_t)-1)
 
 
 int transform(float real[], float imag[], size_t n) {
@@ -124,7 +131,7 @@ int transform_radix2(float real[], float imag[], size_t n) {
 	}
 	
 	// Trignometric tables
-	if (SIZE_MAX / sizeof(float) < n / 2)
+	if (N_MAX / sizeof(float) < n / 2)
 		return 0;
 	/*size = (n / 2) * sizeof(float);
 	cos_table = malloc(size);
@@ -193,17 +200,17 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 	// Find a power-of-2 convolution length m such that m >= n * 2 + 1
 	{
 		size_t target;
-		if (n > (SIZE_MAX - 1) / 2)
+		if (n > (N_MAX - 1) / 2)
 			return 0;
 		target = n * 2 + 1;
 		for (m = 1; m < target; m *= 2) {
-			if (SIZE_MAX / 2 < m)
+			if (N_MAX / 2 < m)
 				return 0;
 		}
 	}
 	
 	// Allocate memory
-	if (SIZE_MAX / sizeof(float) < n || SIZE_MAX / sizeof(float) < m)
+	if (N_MAX / sizeof(float) < n || N_MAX / sizeof(float) < m)
 		return 0;
 	size_n = n * sizeof(float);
 	size_m = m * sizeof(float);
@@ -288,7 +295,7 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	size_t size;
 	size_t i;
 	float *xr, *xi, *yr, *yi;
-	if (SIZE_MAX / sizeof(float) < n)
+	if (N_MAX / sizeof(float) < n)
 		return 0;
 	size = n * sizeof(float);
 	xr = memdup(xreal, size);

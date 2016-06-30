@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "ac_tlm_trigonometric.h"
+#include <netinet/in.h>
 #include <byteswap.h>
 
 //////////////////////////////////////////////////////////////////////////////
@@ -69,8 +70,9 @@ ac_tlm_trigonometric::~ac_tlm_trigonometric() {
  */
 ac_tlm_rsp_status ac_tlm_trigonometric::writem( const uint32_t &a , const uint32_t &d )
 {
-	//cout << "wrinting... addr: " <<  std::hex  << a << " data: " << d << endl;
-	value = d;
+	//cout << "writing... addr: " <<  std::hex  << a << " data: " << d << endl;
+	uint32_t aux = ntohl(d);
+	value = *((float*) &aux);
 	return SUCCESS;
 }
 
@@ -85,11 +87,15 @@ ac_tlm_rsp_status ac_tlm_trigonometric::readm( const uint32_t &a , uint32_t &d )
 	//cout << "reading... addr: " << std::hex << a << " data: " << d << endl;
 	// Calcula coseno
 	if (a == 0x6500000) {
-		d = cos(value); 
+		value = cos(value);
+		uint32_t aux = *((uint32_t *) &value);
+                d = htonl(aux);
 	}
 	// Calcula seno
 	else {
-		d = sin(value);
+		value = sin(value);
+		uint32_t aux = *((uint32_t *) &value);
+                d = htonl(aux);
 	}
 	return SUCCESS;
 }

@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 #include "ac_tlm_peripheral.h"
 #include <byteswap.h>
 
@@ -70,7 +71,8 @@ ac_tlm_peripheral::~ac_tlm_peripheral() {
 ac_tlm_rsp_status ac_tlm_peripheral::writem( const uint32_t &a , const uint32_t &d )
 {
   //cout << "addr: " <<  std::hex  << a << " data: " << d << endl;
-  lock = d;
+  lock = ntohl(d);
+  //lock = d + 1;
   return SUCCESS;
 }
 
@@ -82,7 +84,8 @@ ac_tlm_rsp_status ac_tlm_peripheral::writem( const uint32_t &a , const uint32_t 
 */
 ac_tlm_rsp_status ac_tlm_peripheral::readm( const uint32_t &a , uint32_t &d )
 {
-  d = lock;
+  d = htonl(lock);
+  //d = lock;
   lock = 1;
   return SUCCESS;
 }

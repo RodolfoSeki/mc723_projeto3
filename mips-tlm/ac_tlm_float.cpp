@@ -38,18 +38,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ac_tlm_float.h"
+#include <arpa/inet.h>
 #include <byteswap.h>
 
 //////////////////////////////////////////////////////////////////////////////
 
-float val1;
-float val2;
+float val1, val2;
 
 /// Namespace to isolate float from ArchC
 using user::ac_tlm_float;
 
 /// Constructor
-ac_tlm_float::ac_tlm_float( sc_module_name module_name , int k ) :
+ac_tlm_float::ac_tlm_float( sc_module_name module_name, int k ) :
 	sc_module( module_name ),
 	target_export("iport")
 {
@@ -69,12 +69,14 @@ ac_tlm_float::~ac_tlm_float() {
  */
 ac_tlm_rsp_status ac_tlm_float::writem( const uint32_t &a , const uint32_t &d )
 {
-	//cout << "writing... addr: " <<  std::hex  << a << " data: " << d << endl;
+//	cout << "writing... addr: " <<  std::hex  << a << " data: " << d << endl;
 	if (a % 2 == 0) {
-		val1 = d;
+		uint32_t aux = ntohl(d);
+		val1 = *((float*) &aux);
 	}
 	else {
-		val2 == d;
+		uint32_t aux = ntohl(d);
+		val2 = *((float*) &aux);
 	}
 	return SUCCESS;
 }
@@ -89,21 +91,30 @@ ac_tlm_rsp_status ac_tlm_float::readm( const uint32_t &a , uint32_t &d )
 {
 	// Calcula operação de soma
 	if (a == 0x6600000) {
-		d = val1 + val2;
+		val1 = val1 + val2;
+		uint32_t aux = *((uint32_t *) &val1);
+		d = htonl(aux);
 	}
 	// Calcula operação de subtração
 	else if (a == 0x6700000) {
-		d = val1 - val2;
+		val1 = val1 - val2;
+		uint32_t aux = *((uint32_t *) &val1);
+		d = htonl(aux);
 	}
 	// Calcula operação de multiplicação
 	else if (a == 0x6800000) {
-		d = val1 * val2;
+		val1 = val1 * val2;
+		uint32_t aux = *((uint32_t *) &val1);
+		d = htonl(aux);
 	}
 	// Calcula operação de divisão
 	else if (a == 0x6900000) {
-		d = val1 / val2;
+		val1 = val1 / val2;
+		uint32_t aux = *((uint32_t *) &val1);
+		d = htonl(aux);
 	}
 	//cout << "reading... addr: " << std::hex << a << " data: " << d << endl;
+	
 	return SUCCESS;
 }
 

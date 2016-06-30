@@ -25,16 +25,18 @@
 #ifndef FFT_H
 #define FFT_H
 
+#define LOCK_ADDRESS 0x6400000;
+
 #define SIN_ADDRESS 0x6500001
 #define COS_ADDRESS 0x6500000
+
 #define SUM_ADDRESS 0x6600000
 #define SUB_ADDRESS 0x6700000
 #define MUL_ADDRESS 0x6800000
 #define DIV_ADDRESS 0x6900000
+
 #define WRITE_A     0x6700000
 #define WRITE_B     0x6700001
-
-
 
 
 /* 
