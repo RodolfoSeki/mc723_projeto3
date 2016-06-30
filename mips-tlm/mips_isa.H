@@ -23,10 +23,11 @@
 #include "mips_arch.H"
 #include "mips_arch_ref.H"
 #include "mips_syscall.H"
+#include "mips_stats.H"
 
 namespace mips_parms
 {
-class mips_isa: public mips_arch_ref {
+class mips_isa: public mips_arch_ref, public mips_all_stats {
 private:
 typedef ac_instr<AC_DEC_FIELD_NUMBER> ac_instr_t;
 
