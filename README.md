@@ -36,4 +36,5 @@ Os experimentos serão os mostrados abaixo;
 * **Experimento 4:** cálculo da transformada de fourier sem aceleração e com 8 processadores
 * **Experimento 5:** cálculo da transformada de fourier com aceleração de ponto flutuante e sem paralelismo
 * **Experimento 6:** cálculo da transformada de fourier com aceleração de ponto flutuante e cálculo de operações trigonométricas e sem paralelismo
-* **Experimento 7:** cálculo da transformada de fourier com aceleração de ponto flutuante e cálculo de operações trigonométricas e com melhor configuração de paralelismo
+* **Experimento 7:** cálculo da transformada de fourier com cálculo de operações trigonométricas e sem paralelismo
+* **Experimento 8:** cálculo da transformada de fourier com aceleração de ponto flutuante e cálculo de operações trigonométricas e com melhor configuração de paralelismo
