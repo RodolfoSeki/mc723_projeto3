@@ -1,9 +1,9 @@
-/* 
+/*
  * Free FFT and convolution (C)
- * 
+ *
  * Copyright (c) 2014 Project Nayuki
  * https://www.nayuki.io/page/free-small-fft-in-multiple-languages
- * 
+ *
  * (MIT License)
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,6 +36,8 @@
 #define DIV_ADDRESS 0x6900000
 #define WRITE_A     0x6700000
 #define WRITE_B     0x6700001
+#define LOCK_ADDRESS 0x6400000
+#define NUMBER_OF_CORES 2
 
 volatile float *sin_op=(float *)  SIN_ADDRESS;
 volatile float *cos_op=(float *)  COS_ADDRESS;
@@ -45,7 +47,37 @@ volatile float *mul_op=(float *)  MUL_ADDRESS;
 volatile float *div_op=(float *)  DIV_ADDRESS;
 volatile float *write_a=(float *) WRITE_A;
 volatile float *write_b=(float *) WRITE_B;
+volatile int *lock = (int *) LOCK_ADDRESS;
+volatile int procCounter = 0;
+volatile int firstSemaphore = 0;
+volatile int secondSemaphore = 0;
+volatile int thirdSemaphore = 0;
 
+
+void AcquireLock(){
+	while(*lock);
+}
+void ReleaseLock(){
+	*lock = 0;
+}
+
+void incrementSemaphore(volatile int* s){
+	AcquireLock();
+	*s++;
+	ReleaseLock();
+}
+void acquireSemaphore(volatile int* s){
+	while((*s) < NUMBER_OF_CORES);
+}
+
+void getVectorParcel(int * start, int * end, int size, int procNumber){
+	*start = procNumber*(size/NUMBER_OF_CORES);
+	*end = (procNumber+1)*(size/NUMBER_OF_CORES);
+	if(procNumber == NUMBER_OF_CORES-1){
+		//se tem resto, tem que colocar na ultima parcela
+		*end += size%NUMBER_OF_CORES;
+	}
+}
 float sin_acc(float value){
 	*sin_op = value;
 	return *sin_op;
@@ -101,13 +133,13 @@ static void *memdup(const void *src, size_t n);
 #define SIZE_MAX ((size_t)-1)
 
 
-int transform(float real[], float imag[], size_t n) {
+int transform(float real[], float imag[], size_t n, int procNumber) {
 	if (n == 0)
 		return 1;
 	else if ((n & (n - 1)) == 0)  // Is power of 2
-		return transform_radix2(real, imag, n);
+		return transform_radix2(real, imag, n, procNumber);
 	else  // More complicated algorithm for arbitrary sizes
-		return transform_bluestein(real, imag, n);
+		return transform_bluestein(real, imag, n, procNumber);
 }
 
 
@@ -123,7 +155,7 @@ int transform_radix2(float real[], float imag[], size_t n) {
 	//float *cos_table, *sin_table;
 	size_t size;
 	size_t i;
-	
+
 	// Compute levels = floor(log2(n))
 	{
 		size_t temp = n;
@@ -135,7 +167,7 @@ int transform_radix2(float real[], float imag[], size_t n) {
 		if (1u << levels != n)
 			return 0;  // n is not a power of 2
 	}
-	
+
 	// Trignometric tables
 	if (SIZE_MAX / sizeof(float) < n / 2)
 		return 0;
@@ -148,9 +180,11 @@ int transform_radix2(float real[], float imag[], size_t n) {
 		cos_table[i] = cos(2 * M_PI * i / n);
 		sin_table[i] = sin(2 * M_PI * i / n);
 	}*/
-	
+
 	// Bit-reversed addressing permutation
-	for (i = 0; i < n; i++) {
+	int start, end;
+	getVectorParcel(&start,&end, n, procNumber);
+	for (i = start; i < end; i++) {
 		size_t j = reverse_bits(i, levels);
 		if (j > i) {
 			float temp = real[i];
@@ -161,7 +195,9 @@ int transform_radix2(float real[], float imag[], size_t n) {
 			imag[j] = temp;
 		}
 	}
-	
+	incrementSemaphore(&firstSemaphore);
+	acquireSemaphore(&firstSemaphore);
+
 	// Cooley-Tukey decimation-in-time radix-2 FFT
 	for (size = 2; size <= n; size *= 2) {
 		size_t halfsize = size / 2;
@@ -182,9 +218,9 @@ int transform_radix2(float real[], float imag[], size_t n) {
 			break;
 	}
 	status = 1;
-	
-	
-	
+
+
+
 cleanup:
 	//free(cos_table);
 	//free(sin_table);
@@ -192,7 +228,7 @@ cleanup:
 }
 
 
-int transform_bluestein(float real[], float imag[], size_t n) {
+int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	// Variables
 	int status = 0;
 	//float *cos_table, *sin_table;
@@ -202,7 +238,7 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 	size_t m;
 	size_t size_n, size_m;
 	size_t i;
-	
+
 	// Find a power-of-2 convolution length m such that m >= n * 2 + 1
 	{
 		size_t target;
@@ -214,7 +250,7 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 				return 0;
 		}
 	}
-	
+
 	// Allocate memory
 	if (SIZE_MAX / sizeof(float) < n || SIZE_MAX / sizeof(float) < m)
 		return 0;
@@ -232,7 +268,7 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 			|| breal == NULL || bimag == NULL
 			|| creal == NULL || cimag == NULL)
 		goto cleanup;
-	
+
 	// Trignometric tables
 	/*for (i = 0; i < n; i++) {
 		//float temp = M_PI * (size_t)((unsigned long long)i * i % ((unsigned long long)n * 2)) / n;
@@ -240,7 +276,7 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 		cos_table[i] = cos(temp);
 		sin_table[i] = sin(temp);
 	}*/
-	
+
 	// Temporary vectors and preprocessing
 	for (i = 0; i < n; i++) {
 		areal[i] =  real[i] * cos_mod(i,n) + imag[i] * sin_mod(i,n);
@@ -252,18 +288,18 @@ int transform_bluestein(float real[], float imag[], size_t n) {
 		breal[i] = breal[m - i] = cos_mod(i,n);
 		bimag[i] = bimag[m - i] = sin_mod(i,n);
 	}
-	
+
 	// Convolution
-	if (!convolve_complex(areal, aimag, breal, bimag, creal, cimag, m))
+	if (!convolve_complex(areal, aimag, breal, bimag, creal, cimag, m, procNumber))
 		goto cleanup;
-	
+
 	// Postprocessing
 	for (i = 0; i < n; i++) {
 		real[i] =  creal[i] * cos_mod(i,n) + cimag[i] * sin_mod(i,n);
 		imag[i] = -creal[i] * sin_mod(i,n) + cimag[i] * cos_mod(i,n);
 	}
 	status = 1;
-	
+
 	// Deallocation
 cleanup:
 	free(cimag);
@@ -286,7 +322,7 @@ int convolve_real(const float x[], const float y[], float out[], size_t n) {
 	zimag = calloc(n, sizeof(float));
 	if (ximag == NULL || yimag == NULL || zimag == NULL)
 		goto cleanup;
-	
+
 	status = convolve_complex(x, ximag, y, yimag, out, zimag, n);
 cleanup:
 	free(zimag);
@@ -296,7 +332,7 @@ cleanup:
 }
 
 
-int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n) {
+int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n, int procNumber) {
 	int status = 0;
 	size_t size;
 	size_t i;
@@ -310,24 +346,32 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	yi = memdup(yimag, size);
 	if (xr == NULL || xi == NULL || yr == NULL || yi == NULL)
 		goto cleanup;
-	
+
 	if (!transform(xr, xi, n))
 		goto cleanup;
 	if (!transform(yr, yi, n))
 		goto cleanup;
-	for (i = 0; i < n; i++) {
+
+	int start, end;
+	getVectorParcel(&start,&end, n, procNumber);
+	for (i = start; i < end; i++) {
 		float temp = xr[i] * yr[i] - xi[i] * yi[i];
 		xi[i] = xi[i] * yr[i] + xr[i] * yi[i];
 		xr[i] = temp;
 	}
+	incrementSemaphore(&secondSemaphore);
+	acquireSemaphore(&secondSemaphore);
+
 	if (!inverse_transform(xr, xi, n))
 		goto cleanup;
+
+
 	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
 		outreal[i] = xr[i] / n;
 		outimag[i] = xi[i] / n;
 	}
 	status = 1;
-	
+
 cleanup:
 	free(yi);
 	free(yr);

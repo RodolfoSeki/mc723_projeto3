@@ -1,9 +1,9 @@
-/* 
+/*
  * FFT and convolution test (C)
- * 
+ *
  * Copyright (c) 2014 Project Nayuki
  * https://www.nayuki.io/page/free-small-fft-in-multiple-languages
- * 
+ *
  * (MIT License)
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,18 +29,25 @@
 #include <time.h>
 #include "fft.h"
 #include "input.h"
+#define NUMBER_OF_CORES
+#define LOCK_ADDRESS 0x6400000
+volatile int firstSemaphore = 0;
+volatile int secondSemaphore = 0;
+volatile int thirdSemaphore = 0;
 
 // Private function prototypes
 static void test_fft(int n);
 static void test_convolution(int n);
 static void naive_dft(const float *inreal, const float *inimag, float *outreal, float *outimag, int inverse, int n);
-static void naive_convolve(const float *xreal, const float *ximag, const float *yreal, const float *yimag, float *outreal, float *outimag, int n);
 static float log10_rms_err(const float *xreal, const float *ximag, const float *yreal, const float *yimag, int n);
 static float *random_reals(int n);
 static float *random_imag(int n);
 static void *memdup(const void *src, size_t n);
 
+
 static float max_log_error = -INFINITY;
+
+
 
 
 /* Main and test functions */
@@ -49,42 +56,48 @@ int main(int argc, char **argv) {
 	int i;
 	int prev;
 	srand(10);
-	
+
+	int procNumber;
+	AcquireLock();
+	procNumber = procCounter;
+	procCounter++;
+	ReleaseLock();
+
 	// Test small size FFTs
 	for (i = 0; i < 64; i++)
-		test_fft(i);
-	
+		test_fft(i, procNumber);
+
 	printf("\n");
 
 	return 0;
 }
 
 
-static void test_fft(int n) {
+static void test_fft(int n, int procNumber) {
 	float *inputreal, *inputimag;
 	float *refoutreal, *refoutimag;
 	float *actualoutreal, *actualoutimag;
 	int i;
-	
+
 	inputreal = random_reals(n);
 	inputimag = random_imag(n);
-	
+
 	refoutreal = malloc(n * sizeof(float));
 	refoutimag = malloc(n * sizeof(float));
 	naive_dft(inputreal, inputimag, refoutreal, refoutimag, 0, n);
-	
+
 	actualoutreal = memdup(inputreal, n * sizeof(float));
 	actualoutimag = memdup(inputimag, n * sizeof(float));
-	transform(actualoutreal, actualoutimag, n);
-	
+	transform(actualoutreal, actualoutimag, n, procNumber);
+
 	printf("fftsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
-	
+
 	/* Imprime o vetor de saida da transformada de Fourier*/
 	printf(" Parte real | Parte Imaginária\n");
 	for(i = 0; i < n; i++){
 		printf("%10.4f  | %10.4f\n", actualoutreal[i], actualoutimag[i]);
 	}
-	
+
 	free(refoutreal);
 	free(refoutimag);
 	free(actualoutreal);
@@ -113,21 +126,6 @@ static void naive_dft(const float *inreal, const float *inimag, float *outreal, 
 }
 
 
-static void naive_convolve(const float *xreal, const float *ximag, const float *yreal, const float *yimag, float *outreal, float *outimag, int n) {
-	int i;
-	for (i = 0; i < n; i++) {
-		float sumreal = 0;
-		float sumimag = 0;
-		int j;
-		for (j = 0; j < n; j++) {
-			int k = (i - j + n) % n;
-			sumreal += xreal[k] * yreal[j] - ximag[k] * yimag[j];
-			sumimag += xreal[k] * yimag[j] + ximag[k] * yreal[j];
-		}
-		outreal[i] = sumreal;
-		outimag[i] = sumimag;
-	}
-}
 
 
 /* Utility functions */
@@ -137,7 +135,7 @@ static float log10_rms_err(const float *xreal, const float *ximag, const float *
 	int i;
 	for (i = 0; i < n; i++)
 		err += (xreal[i] - yreal[i]) * (xreal[i] - yreal[i]) + (ximag[i] - yimag[i]) * (ximag[i] - yimag[i]);
-	
+
 	err /= n > 0 ? n : 1;
 	err = sqrt(err);  // Now this is a root mean square (RMS) error
 	err = err > 0 ? log10(err) : -99.0;
