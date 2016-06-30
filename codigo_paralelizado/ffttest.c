@@ -90,13 +90,16 @@ static void test_fft(int n, int procNumber) {
 	actualoutimag = memdup(inputimag, n * sizeof(float));
 	transform(actualoutreal, actualoutimag, n, procNumber);
 
-	printf("fftsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
+	if (procNumber == 0){
+		printf("fftsize=%4d  logerr=%5.1f\n", n, log10_rms_err(refoutreal, refoutimag, actualoutreal, actualoutimag, n));
 
-	/* Imprime o vetor de saida da transformada de Fourier*/
-	printf(" Parte real | Parte Imaginária\n");
-	for(i = 0; i < n; i++){
-		printf("%10.4f  | %10.4f\n", actualoutreal[i], actualoutimag[i]);
+		/* Imprime o vetor de saida da transformada de Fourier*/
+		printf(" Parte real | Parte Imaginária\n");
+		for(i = 0; i < n; i++){
+			printf("%10.4f  | %10.4f\n", actualoutreal[i], actualoutimag[i]);
+		}
 	}
+
 
 	free(refoutreal);
 	free(refoutimag);

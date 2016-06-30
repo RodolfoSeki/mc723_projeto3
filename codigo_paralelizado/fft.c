@@ -52,6 +52,8 @@ volatile int procCounter = 0;
 volatile int firstSemaphore = 0;
 volatile int secondSemaphore = 0;
 volatile int thirdSemaphore = 0;
+volatile int fourthSemaphore = 0;
+
 
 
 void AcquireLock(){
@@ -277,11 +279,17 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 		sin_table[i] = sin(temp);
 	}*/
 
+
 	// Temporary vectors and preprocessing
-	for (i = 0; i < n; i++) {
+	int start, end;
+	getVectorParcel(&start,&end, n, procNumber);
+	for (i = start; i < end; i++) {
 		areal[i] =  real[i] * cos_mod(i,n) + imag[i] * sin_mod(i,n);
 		aimag[i] = -real[i] * sin_mod(i,n) + imag[i] * cos_mod(i,n);
 	}
+	incrementSemaphore(&thirdSemaphore);
+	acquireSemaphore(&thirdSemaphore);
+
 	breal[0] = cos_mod(0,n);
 	bimag[0] = sin_mod(0,n);
 	for (i = 1; i < n; i++) {
@@ -365,11 +373,14 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	if (!inverse_transform(xr, xi, n))
 		goto cleanup;
 
-
-	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
+	getVectorParcel(&start,&end, n, procNumber);
+	for (i = start; i < end; i++) {  // Scaling (because this FFT implementation omits it)
 		outreal[i] = xr[i] / n;
 		outimag[i] = xi[i] / n;
 	}
+	incrementSemaphore(&fourthSemaphore);
+	acquireSemaphore(&fourthSemaphore);
+
 	status = 1;
 
 cleanup:
