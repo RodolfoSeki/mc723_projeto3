@@ -57,6 +57,11 @@ volatile int fourthSemaphore = 0;
 volatile float areal[130];
 volatile float aimag[130];
 
+volatile float real_copy[130];
+volatile float image_copy[130];
+volatile int flag1 = 0;
+volatile int flag2 = 0;
+
 void AcquireLock() {
 	while(*lock);
 }
@@ -175,18 +180,49 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	if (SIZE_MAX / sizeof(float) < n / 2)
 		return 0;
 
+	AcquireLock();
+	if(flag1 == 0){
+		for(i = 0; i < n; i++){
+			real_copy[i] = real[i];
+			imag_copy[i] = imag[i];
+		}
+		flag1 = 1;
+	}
+	ReleaseLock();
+
+	int start, end;
+	getVectorParcel(&start,&end, n, procNumber);
 	// Bit-reversed addressing permutation
-	for (i = 0; i < n; i++) {
+	for (i = start; i < end; i++) {
 		size_t j = reverse_bits(i, levels);
 		if (j > i) {
-			float temp = real[i];
-			real[i] = real[j];
-			real[j] = temp;
-			temp = imag[i];
-			imag[i] = imag[j];
-			imag[j] = temp;
+			float temp = real_copy[i];
+			real_copy[i] = real_copy[j];
+			real_copy[j] = temp;
+			temp = imag_copy[i];
+			imag_copy[i] = imag_copy[j];
+			imag_copy[j] = temp;
 		}
 	}
+	incrementSemaphore(&thirdSemaphore);
+	AcquireLock();
+	if (procNumber == 1)
+		printf("1 incrementou semaforo\n");
+	else
+		printf("2 incrementou semaforo\n");
+	ReleaseLock();
+	acquireSemaphore(&thirdSemaphore);
+
+	AcquireLock();
+	if(flag2 == 0){
+		for(i = 0; i < n; i++){
+			real[i] = real_copy[i];
+			imag[i] = imag_copy[i];
+		}
+		flag2 = 1;
+	}
+	ReleaseLock();
+
 
 	// Cooley-Tukey decimation-in-time radix-2 FFT
 	for (size = 2; size <= n; size *= 2) {
@@ -275,7 +311,7 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	else
 		printf("2 incrementou semaforo\n");
 	ReleaseLock();
-	
+
 	acquireSemaphore(&thirdSemaphore);
 
 	AcquireLock();
@@ -344,7 +380,7 @@ int convolve_complex(const float yreal[], const float yimag[], float outreal[], 
 
 	if (!inverse_transform(xr, xi, n, procNumber))
 		goto cleanup;
-	
+
 	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
 		outreal[i] = xr[i] / n;
 		outimag[i] = xi[i] / n;
