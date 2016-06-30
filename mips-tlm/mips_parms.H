@@ -16,6 +16,7 @@
 #ifndef  _MIPS_PARMS_H
 #define  _MIPS_PARMS_H
 
+#define  AC_STATS 	 //!< Indicates that statistics collection is turned on.
 namespace mips_parms {
 
 

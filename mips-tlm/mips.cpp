@@ -52,6 +52,7 @@ void mips::behavior() {
 
 #define AC_SYSC(NAME,LOCATION) \
     case LOCATION: \
+        ISA.stats[mips_stat_ids::SYSCALLS]++; \
         ISA.syscall.NAME(); \
       break;  \
 
@@ -320,6 +321,10 @@ void mips::behavior() {
         if (!ac_annul_sig) ISA.behavior_instr_break(instr_vec->get(1), instr_vec->get(2), instr_vec->get(3), instr_vec->get(4), instr_vec->get(5), instr_vec->get(6));
         break;
       } // switch (ins_id)
+      if((!ac_annul_sig) && (!ac_wait_sig)) {
+        ISA.stats[mips_stat_ids::INSTRUCTIONS]++;
+        (*(ISA.instr_stats[ins_id]))[mips_instr_stat_ids::COUNT]++;
+      }
       break;
     }
     if ((!ac_wait_sig) && (!ac_annul_sig)) ac_instr_counter+=1;
