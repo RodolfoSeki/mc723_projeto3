@@ -32,19 +32,28 @@ mips-newlib-elf-gcc -specs=archc $1/*.c -o fft.mips -Os -lm
 
 
 printf "${COL_RED}%-12s${COL_RESET}\n" "Executando"
-./mips.x --load=fftacc.mips > $1/saida.out  2> $1/resultado.out
+./mips.x --load=fft.mips > $1/saida.out  2> $1/resultado.out
 
 
-printf "${COL_CYAN}%-12s${COL_RESET}\n" "Comparando saída com codigo_original/saida.out"
+printf "${COL_CYAN}%-12s${COL_RESET}\n" "Comparando saída com codigo_original/saida_gcc.out"
+diff $1/saida.out ../codigo_original/saida_gcc.out
+SAIDA_GCC=$?
 diff $1/saida.out ../codigo_original/saida.out
-if [ $? -eq 0 ]; then
-        printf "${COL_GREEN}%-12s${COL_RESET}\n" "Saída igual original"
-    else
+SAIDA_MIPS=$?
+if [ $SAIDA_GCC -eq 0 ]; then
+        printf "${COL_GREEN}%-12s${COL_RESET}\n" "Saída igual SAIDA GCC e diferente da SAIDA MIPS"
+elif [ $SAIDA_MIPS -eq 0 ]; then
+	printf "${COL_GREEN}%-12s${COL_RESET}\n" "Saída igual SAIDA MIPS e diferente da SAIDA GCC"
+else
         printf "${COL_RED}%-12s${COL_RESET}\n" "Saída incorreta, verificar problema de aproximação"
 fi
 
+
 printf "${COL_CYAN}%-12s${COL_RESET}\n" "Parseando resultado"
 #cat $1/resultado.out | awk 'BEGIN { ORS=" " }; /from instruction/{ getline; print $3 ; printf "\n" }' > $1/resultado.out
+
+printf "${COL_RED}%-12s:${COL_RESET} " "Numero de instruções" 
+cat $1/resultado.out | awk '/instructions executed/{ print $5 }'
 
 cat $1/resultado.out | awk 'BEGIN { ORS=" " }; /from instruction/{ getline; print $3 ; printf "\n" }' > new_res
 

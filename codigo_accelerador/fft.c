@@ -45,6 +45,7 @@ float sin_acc(float value){
         *sin_op = *((uint32_t*)&value);
         return *((float*)&(*sin_op));
 }
+
 float cos_acc(float value){
         *cos_op = *((uint32_t*)&value);
         return *((float*)&(*cos_op));
@@ -61,11 +62,13 @@ float sub_acc(float value_a, float value_b){
         (*write_b) = *((uint32_t*)&value_b);
         return *((float*)&(*sub_op));
 }
+
 float mul_acc(float value_a, float value_b){
         (*write_a) = *((uint32_t*)&value_a);
         (*write_b) = *((uint32_t*)&value_b);
         return *((float*)&(*mul_op));
 }
+
 float div_acc(float value_a, float value_b){
         (*write_a) = *((uint32_t*)&value_a);
         (*write_b) = *((uint32_t*)&value_b);
@@ -185,7 +188,6 @@ cleanup:
 	return status;
 }
 
-
 int transform_bluestein(float real[], float imag[], size_t n) {
 	// Variables
 	int status = 0;
@@ -270,7 +272,6 @@ cleanup:
 	//free(cos_table);
 	return status;
 }
-
 
 int convolve_real(const float x[], const float y[], float out[], size_t n) {
 	float *ximag, *yimag, *zimag;
