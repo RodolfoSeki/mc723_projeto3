@@ -28,11 +28,11 @@ printf "${COL_YELLOW}%-12s${COL_RESET}\n" "make"
 make -f Makefile.archc
 
 printf "${COL_CYAN}%-12s${COL_RESET}\n" "Complilando"
-mips-newlib-elf-gcc -specs=archc $1/*.c -o fft.mips -Os -lm
+/home/staff/lucas/mips-newlib-elf/bin/mips-newlib-elf-gcc -specs=archc $1/*.c -o fft.mips -Os -lm
 
 
 printf "${COL_RED}%-12s${COL_RESET}\n" "Executando"
-./mips.x --load=fft.mips > $1/saida.out  2> $1/resultado.out
+./mips.x --load=fft.mips > $1/saida.out # 2> $1/resultado.out
 
 
 printf "${COL_CYAN}%-12s${COL_RESET}\n" "Comparando saída com codigo_original/saida_gcc.out"
@@ -47,7 +47,6 @@ elif [ $SAIDA_MIPS -eq 0 ]; then
 else
         printf "${COL_RED}%-12s${COL_RESET}\n" "Saída incorreta, verificar problema de aproximação"
 fi
-
 
 printf "${COL_CYAN}%-12s${COL_RESET}\n" "Parseando resultado"
 #cat $1/resultado.out | awk 'BEGIN { ORS=" " }; /from instruction/{ getline; print $3 ; printf "\n" }' > $1/resultado.out
