@@ -63,7 +63,7 @@ int transform(float real[], float imag[], size_t n, int procNumber);
  * The vector can have any length. This is a wrapper function. This transform does not perform scaling, so the inverse is not a true inverse.
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int inverse_transform(float real[], float imag[], size_t n);
+int inverse_transform(float real[], float imag[], size_t n, int procNumber);
 
 /*
  * Computes the discrete Fourier transform (DFT) of the given complex vector, storing the result back into the vector.
@@ -83,7 +83,7 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber);
  * Computes the circular convolution of the given real vectors. Each vector's length must be the same.
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int convolve_real(const float x[], const float y[], float out[], size_t n);
+int convolve_real(const float x[], const float y[], float out[], size_t n, int procNumber);
 
 /*
  * Computes the circular convolution of the given complex vectors. Each vector's length must be the same.
