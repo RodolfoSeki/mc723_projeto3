@@ -23,6 +23,7 @@
  */
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "fft.h"
@@ -58,7 +59,7 @@ volatile float areal[130];
 volatile float aimag[130];
 
 volatile float real_copy[130];
-volatile float image_copy[130];
+volatile float imag_copy[130];
 volatile int flag1 = 0;
 volatile int flag2 = 0;
 
@@ -360,10 +361,10 @@ int convolve_complex(const float yreal[], const float yimag[], float outreal[], 
 	if (SIZE_MAX / sizeof(float) < n)
 		return 0;
 	size = n * sizeof(float);
-	xr = memdup(areal, size);
-	xi = memdup(aimag, size);
-	yr = memdup(yreal, size);
-	yi = memdup(yimag, size);
+	xr = memdup((const void*)areal, size);
+	xi = memdup((const void*)aimag, size);
+	yr = memdup((const void*)yreal, size);
+	yi = memdup((const void*)yimag, size);
 	if (xr == NULL || xi == NULL || yr == NULL || yi == NULL)
 		goto cleanup;
 
