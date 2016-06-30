@@ -214,15 +214,10 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	ReleaseLock();
 	acquireSemaphore(&thirdSemaphore);
 
-	AcquireLock();
-	if(flag2 == 0){
-		for(i = 0; i < n; i++){
-			real[i] = real_copy[i];
-			imag[i] = imag_copy[i];
-		}
-		flag2 = 1;
+	for(i = 0; i < n; i++){
+		real[i] = real_copy[i];
+		imag[i] = imag_copy[i];
 	}
-	ReleaseLock();
 
 
 	// Cooley-Tukey decimation-in-time radix-2 FFT
