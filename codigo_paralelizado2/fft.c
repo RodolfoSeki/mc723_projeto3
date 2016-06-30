@@ -46,11 +46,16 @@ volatile float *mul_op=(float *)  MUL_ADDRESS;
 volatile float *div_op=(float *)  DIV_ADDRESS;
 volatile float *write_a=(float *) WRITE_A;
 volatile float *write_b=(float *) WRITE_B;
+
 volatile int *lock = (int *) LOCK_ADDRESS;
 volatile int firstSemaphore = 0;
 volatile int secondSemaphore = 0;
 volatile int thirdSemaphore = 0;
 volatile int fourthSemaphore = 0;
+
+
+volatile float areal[130];
+volatile float aimag[130];
 
 void AcquireLock() {
 	while(*lock);
@@ -61,7 +66,7 @@ void ReleaseLock(){
 
 void incrementSemaphore(volatile int* s){
 	AcquireLock();
-	*s++;
+	(*s)++;
 	ReleaseLock();
 }
 
@@ -169,20 +174,9 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	// Trignometric tables
 	if (SIZE_MAX / sizeof(float) < n / 2)
 		return 0;
-	/*size = (n / 2) * sizeof(float);
-	cos_table = malloc(size);
-	sin_table = malloc(size);
-	if (cos_table == NULL || sin_table == NULL)
-		goto cleanup;
-	for (i = 0; i < n / 2; i++) {
-		cos_table[i] = cos(2 * M_PI * i / n);
-		sin_table[i] = sin(2 * M_PI * i / n);
-	}*/
 
 	// Bit-reversed addressing permutation
-	int start, end;
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {
+	for (i = 0; i < n; i++) {
 		size_t j = reverse_bits(i, levels);
 		if (j > i) {
 			float temp = real[i];
@@ -193,8 +187,6 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 			imag[j] = temp;
 		}
 	}
-	incrementSemaphore(&firstSemaphore);
-	acquireSemaphore(&firstSemaphore);
 
 	// Cooley-Tukey decimation-in-time radix-2 FFT
 	for (size = 2; size <= n; size *= 2) {
@@ -230,7 +222,8 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	// Variables
 	int status = 0;
 	//float *cos_table, *sin_table;
-	float *areal, *aimag;
+	//float *areal, *aimag;
+
 	float *breal, *bimag;
 	float *creal, *cimag;
 	size_t m;
@@ -254,10 +247,10 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 		return 0;
 	size_n = n * sizeof(float);
 	size_m = m * sizeof(float);
-	//cos_table = malloc(size_n);
-	//sin_table = malloc(size_n);
-	areal = calloc(m, sizeof(float));
-	aimag = calloc(m, sizeof(float));
+
+	//areal = calloc(m, sizeof(float));
+	//aimag = calloc(m, sizeof(float));
+
 	breal = calloc(m, sizeof(float));
 	bimag = calloc(m, sizeof(float));
 	creal = malloc(size_m);
@@ -266,14 +259,6 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 			|| breal == NULL || bimag == NULL
 			|| creal == NULL || cimag == NULL)
 		goto cleanup;
-
-	// Trignometric tables
-	/*for (i = 0; i < n; i++) {
-		//float temp = M_PI * (size_t)((unsigned long long)i * i % ((unsigned long long)n * 2)) / n;
-		// Less accurate version if long long is unavailable: float temp = M_PI * i * i / n;
-		cos_table[i] = cos(temp);
-		sin_table[i] = sin(temp);
-	}*/
 
 
 	// Temporary vectors and preprocessing
@@ -284,7 +269,21 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 		aimag[i] = -real[i] * sin_mod(i,n) + imag[i] * cos_mod(i,n);
 	}
 	incrementSemaphore(&thirdSemaphore);
+	AcquireLock();
+	if (procNumber == 1)
+		printf("1 incrementou semaforo\n");
+	else
+		printf("2 incrementou semaforo\n");
+	ReleaseLock();
+	
 	acquireSemaphore(&thirdSemaphore);
+
+	AcquireLock();
+	if (procNumber == 1)
+		printf("1 passou\n");
+	else
+		printf("2 passou\n");
+	ReleaseLock();
 
 	breal[0] = cos_mod(0,n);
 	bimag[0] = sin_mod(0,n);
@@ -294,7 +293,7 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	}
 
 	// Convolution
-	if (!convolve_complex(areal, aimag, breal, bimag, creal, cimag, m, procNumber))
+	if (!convolve_complex(breal, bimag, creal, cimag, m, procNumber))
 		goto cleanup;
 
 	// Postprocessing
@@ -310,33 +309,14 @@ cleanup:
 	free(creal);
 	free(bimag);
 	free(breal);
-	free(aimag);
-	free(areal);
-	//free(sin_table);
-	//free(cos_table);
+	//free(aimag);
+	//free(areal);
 	return status;
 }
 
 
-int convolve_real(const float x[], const float y[], float out[], size_t n, int procNumber) {
-	float *ximag, *yimag, *zimag;
-	int status = 0;
-	ximag = calloc(n, sizeof(float));
-	yimag = calloc(n, sizeof(float));
-	zimag = calloc(n, sizeof(float));
-	if (ximag == NULL || yimag == NULL || zimag == NULL)
-		goto cleanup;
 
-	status = convolve_complex(x, ximag, y, yimag, out, zimag, n, procNumber);
-cleanup:
-	free(zimag);
-	free(yimag);
-	free(ximag);
-	return status;
-}
-
-
-int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n, int procNumber) {
+int convolve_complex(const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n, int procNumber) {
 	int status = 0;
 	size_t size;
 	size_t i;
@@ -344,8 +324,8 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	if (SIZE_MAX / sizeof(float) < n)
 		return 0;
 	size = n * sizeof(float);
-	xr = memdup(xreal, size);
-	xi = memdup(ximag, size);
+	xr = memdup(areal, size);
+	xi = memdup(aimag, size);
 	yr = memdup(yreal, size);
 	yi = memdup(yimag, size);
 	if (xr == NULL || xi == NULL || yr == NULL || yi == NULL)
@@ -356,28 +336,19 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	if (!transform(yr, yi, n, procNumber))
 		goto cleanup;
 
-	int start, end;
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {
+	for (i = 0; i < n; i++) {
 		float temp = xr[i] * yr[i] - xi[i] * yi[i];
 		xi[i] = xi[i] * yr[i] + xr[i] * yi[i];
 		xr[i] = temp;
 	}
-	incrementSemaphore(&secondSemaphore);
-	acquireSemaphore(&secondSemaphore);
 
-	if (!inverse_transform(xr, xi, n, procNumber));
-
+	if (!inverse_transform(xr, xi, n, procNumber))
 		goto cleanup;
-
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {  // Scaling (because this FFT implementation omits it)
+	
+	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
 		outreal[i] = xr[i] / n;
 		outimag[i] = xi[i] / n;
 	}
-	incrementSemaphore(&fourthSemaphore);
-	acquireSemaphore(&fourthSemaphore);
-
 	status = 1;
 
 cleanup:

@@ -32,7 +32,7 @@ printf "${COL_CYAN}%-12s${COL_RESET}\n" "Complilando"
 
 
 printf "${COL_RED}%-12s${COL_RESET}\n" "Executando"
-./mips.x --load=fft.mips > $1/saida.out # 2> $1/resultado.out
+./mips.x --load=fft.mips > $1/saida.out 2> $1/resultado.out
 
 
 printf "${COL_CYAN}%-12s${COL_RESET}\n" "Comparando saída com codigo_original/saida_gcc.out"
@@ -51,11 +51,12 @@ fi
 printf "${COL_CYAN}%-12s${COL_RESET}\n" "Parseando resultado"
 #cat $1/resultado.out | awk 'BEGIN { ORS=" " }; /from instruction/{ getline; print $3 ; printf "\n" }' > $1/resultado.out
 
-printf "${COL_RED}%-12s:${COL_RESET} " "Numero de instruções" 
-cat $1/resultado.out | awk '/instructions executed/{ print $5 }'
+#printf "${COL_RED}%-12s:${COL_RESET} " "Numero de instruções" 
 
-cat $1/resultado.out | awk 'BEGIN { ORS=" " }; /from instruction/{ getline; print $3 ; printf "\n" }' > new_res
+#cat $1/resultado.out | awk '/instructions executed/{ print $5 }'
 
-mv new_res  $1/resultado.out
+#cat $1/resultado.out | awk 'BEGIN { ORS=" " }; /from instruction/{ getline; print $3 ; printf "\n" }' > new_res
 
-printf "${COL_BLUE}%-12s${COL_RESET}\n" "Colocar resultado.out na planilha"
+#mv new_res  $1/resultado.out
+
+printf "${COL_BLUE}%-12s${COL_RESET}\n" "saida em resultado.out"

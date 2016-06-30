@@ -1,9 +1,9 @@
-/*
+/* 
  * Free FFT and convolution (C)
- *
+ * 
  * Copyright (c) 2014 Project Nayuki
  * https://www.nayuki.io/page/free-small-fft-in-multiple-languages
- *
+ * 
  * (MIT License)
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,135 +25,90 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "fft.h"
 
-#define SIN_ADDRESS 0x6500001
-#define COS_ADDRESS 0x6500000
-#define SUM_ADDRESS 0x6600000
-#define SUB_ADDRESS 0x6700000
-#define MUL_ADDRESS 0x6800000
-#define DIV_ADDRESS 0x6900000
-#define WRITE_A     0x6700000
-#define WRITE_B     0x6700001
-#define LOCK_ADDRESS 0x6400000
-#define NUMBER_OF_CORES 2
+volatile int *lock = (volatile int *) LOCK_ADDRESS;
 
-volatile float *sin_op=(float *)  SIN_ADDRESS;
-volatile float *cos_op=(float *)  COS_ADDRESS;
-volatile float *sum_op=(float *)  SUM_ADDRESS;
-volatile float *sub_op=(float *)  SUB_ADDRESS;
-volatile float *mul_op=(float *)  MUL_ADDRESS;
-volatile float *div_op=(float *)  DIV_ADDRESS;
-volatile float *write_a=(float *) WRITE_A;
-volatile float *write_b=(float *) WRITE_B;
-volatile int *lock = (int *) LOCK_ADDRESS;
-volatile int firstSemaphore = 0;
-volatile int secondSemaphore = 0;
-volatile int thirdSemaphore = 0;
-volatile int fourthSemaphore = 0;
+volatile int *sin_op = (volatile int *)  SIN_ADDRESS;
+volatile int *cos_op = (volatile int *)  COS_ADDRESS;
 
-void AcquireLock() {
-	while(*lock);
-}
-void ReleaseLock(){
-	*lock = 0;
+volatile int *sum_op = (volatile int *)  SUM_ADDRESS;
+volatile int *sub_op = (volatile int *)  SUB_ADDRESS;
+volatile int *mul_op = (volatile int *)  MUL_ADDRESS;
+volatile int *div_op = (volatile int *)  DIV_ADDRESS;
+
+volatile int *write_a = (volatile int *) WRITE_A;
+volatile int *write_b = (volatile int *) WRITE_B;
+
+float sum_acc (float value_a, float value_b){
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*sum_op));
 }
 
-void incrementSemaphore(volatile int* s){
-	AcquireLock();
-	*s++;
-	ReleaseLock();
-}
-
-void acquireSemaphore(volatile int* s){
-	while((*s) < NUMBER_OF_CORES);
-}
-
-void getVectorParcel(int * start, int * end, int size, int procNumber){
-	*start = procNumber*(size/NUMBER_OF_CORES);
-	*end = (procNumber+1)*(size/NUMBER_OF_CORES);
-	if(procNumber == NUMBER_OF_CORES-1){
-		//se tem resto, tem que colocar na ultima parcela
-		*end += size%NUMBER_OF_CORES;
-	}
-}
-
-float sin_acc(float value){
-	*sin_op = value;
-	return *sin_op;
-}
-float cos_acc(float value){
-	*cos_op = value;
-	return *cos_op;
-}
-
-float sum_acc(float value_a, float value_b){
-	*write_a = value_a;
-	*write_b = value_b;
-	return *sum_op;
-}
 float sub_acc(float value_a, float value_b){
-	*write_a = value_a;
-	*write_b = value_b;
-	return *sub_op;
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*sub_op));
 }
 float mul_acc(float value_a, float value_b){
-	*write_a = value_a;
-	*write_b = value_b;
-	return *mul_op;
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*mul_op));
 }
 float div_acc(float value_a, float value_b){
-	*write_a = value_a;
-	*write_b = value_b;
-	return *div_op;
+        (*write_a) = *((uint32_t*)&value_a);
+        (*write_b) = *((uint32_t*)&value_b);
+        return *((float*)&(*div_op));
 }
 
 float cos_mod_two(float k, int n){
-	return cos(2 * M_PI * k / n);
+	return cos(div_acc(mul_acc(mul_acc(2, M_PI), k), n));
 }
 
 float sin_mod_two(float k, int n){
-	return sin(2 * M_PI * k / n);
+	return sin(div_acc(mul_acc(mul_acc(2, M_PI), k), n));
 }
 
 float cos_mod(float i, int n){
-	return cos( M_PI * i * i / n);
+	return cos(div_acc(mul_acc(mul_acc(M_PI, i), i), n));
 }
 
 float sin_mod(float i, int n){
-	return sin( M_PI * i * i / n);
+	return sin(div_acc(mul_acc(mul_acc(M_PI, i), i), n));
 }
 
 // Private function prototypes
 static size_t reverse_bits(size_t x, unsigned int n);
 static void *memdup(const void *src, size_t n);
 
-#define SIZE_MAX ((size_t)-1)
+#define N_MAX ((size_t)-1)
 
 
-int transform(float real[], float imag[], size_t n, int procNumber) {
+int transform(float real[], float imag[], size_t n) {
 	if (n == 0)
 		return 1;
 	else if ((n & (n - 1)) == 0)  // Is power of 2
-		return transform_radix2(real, imag, n, procNumber);
+		return transform_radix2(real, imag, n);
 	else  // More complicated algorithm for arbitrary sizes
-		return transform_bluestein(real, imag, n, procNumber);
+		return transform_bluestein(real, imag, n);
 }
 
 
-int inverse_transform(float real[], float imag[], size_t n, int procNumber) {
-	return transform(imag, real, n, procNumber);
+int inverse_transform(float real[], float imag[], size_t n) {
+	return transform(imag, real, n);
 }
 
 
-int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
+int transform_radix2(float real[], float imag[], size_t n) {
 	// Variables
 	int status = 0;
 	unsigned int levels;
 	//float *cos_table, *sin_table;
 	size_t size;
 	size_t i;
-
+	
 	// Compute levels = floor(log2(n))
 	{
 		size_t temp = n;
@@ -165,9 +120,9 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 		if (1u << levels != n)
 			return 0;  // n is not a power of 2
 	}
-
+	
 	// Trignometric tables
-	if (SIZE_MAX / sizeof(float) < n / 2)
+	if (N_MAX / sizeof(float) < n / 2)
 		return 0;
 	/*size = (n / 2) * sizeof(float);
 	cos_table = malloc(size);
@@ -178,11 +133,9 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 		cos_table[i] = cos(2 * M_PI * i / n);
 		sin_table[i] = sin(2 * M_PI * i / n);
 	}*/
-
+	
 	// Bit-reversed addressing permutation
-	int start, end;
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {
+	for (i = 0; i < n; i++) {
 		size_t j = reverse_bits(i, levels);
 		if (j > i) {
 			float temp = real[i];
@@ -193,9 +146,7 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 			imag[j] = temp;
 		}
 	}
-	incrementSemaphore(&firstSemaphore);
-	acquireSemaphore(&firstSemaphore);
-
+	
 	// Cooley-Tukey decimation-in-time radix-2 FFT
 	for (size = 2; size <= n; size *= 2) {
 		size_t halfsize = size / 2;
@@ -204,29 +155,28 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 			size_t j;
 			size_t k;
 			for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
-				float tpre =  real[j+halfsize] * cos_mod_two(k,n) + imag[j+halfsize] * sin_mod_two(k,n);
-				float tpim = -real[j+halfsize] * sin_mod_two(k,n) + imag[j+halfsize] * cos_mod_two(k,n);
-				real[j + halfsize] = real[j] - tpre;
-				imag[j + halfsize] = imag[j] - tpim;
-				real[j] += tpre;
-				imag[j] += tpim;
+				float tpre = sum_acc(mul_acc(real[j+halfsize], cos_mod_two(k,n)), mul_acc(imag[j+halfsize], sin_mod_two(k,n)));
+				float tpim = sum_acc(mul_acc(-real[j+halfsize], sin_mod_two(k,n)), mul_acc(imag[j+halfsize], cos_mod_two(k,n)));
+				real[j + halfsize] = sub_acc(real[j], tpre);
+				imag[j + halfsize] = sub_acc(imag[j], tpim);
+				real[j] = sum_acc(real[j],tpre);
+				imag[j] = sum_acc(imag[j],tpim);
 			}
 		}
 		if (size == n)  // Prevent overflow in 'size *= 2'
 			break;
 	}
 	status = 1;
-
-
-
+	
+	
+	
 cleanup:
 	//free(cos_table);
 	//free(sin_table);
 	return status;
 }
 
-
-int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
+int transform_bluestein(float real[], float imag[], size_t n) {
 	// Variables
 	int status = 0;
 	//float *cos_table, *sin_table;
@@ -236,21 +186,21 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	size_t m;
 	size_t size_n, size_m;
 	size_t i;
-
+	
 	// Find a power-of-2 convolution length m such that m >= n * 2 + 1
 	{
 		size_t target;
-		if (n > (SIZE_MAX - 1) / 2)
+		if (n > (N_MAX - 1) / 2)
 			return 0;
 		target = n * 2 + 1;
 		for (m = 1; m < target; m *= 2) {
-			if (SIZE_MAX / 2 < m)
+			if (N_MAX / 2 < m)
 				return 0;
 		}
 	}
-
+	
 	// Allocate memory
-	if (SIZE_MAX / sizeof(float) < n || SIZE_MAX / sizeof(float) < m)
+	if (N_MAX / sizeof(float) < n || N_MAX / sizeof(float) < m)
 		return 0;
 	size_n = n * sizeof(float);
 	size_m = m * sizeof(float);
@@ -266,7 +216,7 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 			|| breal == NULL || bimag == NULL
 			|| creal == NULL || cimag == NULL)
 		goto cleanup;
-
+	
 	// Trignometric tables
 	/*for (i = 0; i < n; i++) {
 		//float temp = M_PI * (size_t)((unsigned long long)i * i % ((unsigned long long)n * 2)) / n;
@@ -274,36 +224,30 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 		cos_table[i] = cos(temp);
 		sin_table[i] = sin(temp);
 	}*/
-
-
+	
 	// Temporary vectors and preprocessing
-	int start, end;
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {
-		areal[i] =  real[i] * cos_mod(i,n) + imag[i] * sin_mod(i,n);
-		aimag[i] = -real[i] * sin_mod(i,n) + imag[i] * cos_mod(i,n);
+	for (i = 0; i < n; i++) {
+		areal[i] = sum_acc(mul_acc(real[i], cos_mod(i,n)), mul_acc(imag[i], sin_mod(i,n)));
+		aimag[i] = sum_acc(mul_acc(-real[i], sin_mod(i,n)), mul_acc(imag[i], cos_mod(i,n)));
 	}
-	incrementSemaphore(&thirdSemaphore);
-	acquireSemaphore(&thirdSemaphore);
-
 	breal[0] = cos_mod(0,n);
 	bimag[0] = sin_mod(0,n);
 	for (i = 1; i < n; i++) {
 		breal[i] = breal[m - i] = cos_mod(i,n);
 		bimag[i] = bimag[m - i] = sin_mod(i,n);
 	}
-
+	
 	// Convolution
-	if (!convolve_complex(areal, aimag, breal, bimag, creal, cimag, m, procNumber))
+	if (!convolve_complex(areal, aimag, breal, bimag, creal, cimag, m))
 		goto cleanup;
-
+	
 	// Postprocessing
 	for (i = 0; i < n; i++) {
-		real[i] =  creal[i] * cos_mod(i,n) + cimag[i] * sin_mod(i,n);
-		imag[i] = -creal[i] * sin_mod(i,n) + cimag[i] * cos_mod(i,n);
+		real[i] = sum_acc(mul_acc(creal[i], cos_mod(i,n)), mul_acc(cimag[i], sin_mod(i,n)));
+		imag[i] = sum_acc(mul_acc(-creal[i], sin_mod(i,n)), mul_acc(cimag[i], cos_mod(i,n)));
 	}
 	status = 1;
-
+	
 	// Deallocation
 cleanup:
 	free(cimag);
@@ -317,8 +261,7 @@ cleanup:
 	return status;
 }
 
-
-int convolve_real(const float x[], const float y[], float out[], size_t n, int procNumber) {
+int convolve_real(const float x[], const float y[], float out[], size_t n) {
 	float *ximag, *yimag, *zimag;
 	int status = 0;
 	ximag = calloc(n, sizeof(float));
@@ -326,8 +269,8 @@ int convolve_real(const float x[], const float y[], float out[], size_t n, int p
 	zimag = calloc(n, sizeof(float));
 	if (ximag == NULL || yimag == NULL || zimag == NULL)
 		goto cleanup;
-
-	status = convolve_complex(x, ximag, y, yimag, out, zimag, n, procNumber);
+	
+	status = convolve_complex(x, ximag, y, yimag, out, zimag, n);
 cleanup:
 	free(zimag);
 	free(yimag);
@@ -336,12 +279,12 @@ cleanup:
 }
 
 
-int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n, int procNumber) {
+int convolve_complex(const float xreal[], const float ximag[], const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n) {
 	int status = 0;
 	size_t size;
 	size_t i;
 	float *xr, *xi, *yr, *yi;
-	if (SIZE_MAX / sizeof(float) < n)
+	if (N_MAX / sizeof(float) < n)
 		return 0;
 	size = n * sizeof(float);
 	xr = memdup(xreal, size);
@@ -350,36 +293,24 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	yi = memdup(yimag, size);
 	if (xr == NULL || xi == NULL || yr == NULL || yi == NULL)
 		goto cleanup;
-
-	if (!transform(xr, xi, n, procNumber))
+	
+	if (!transform(xr, xi, n))
 		goto cleanup;
-	if (!transform(yr, yi, n, procNumber))
+	if (!transform(yr, yi, n))
 		goto cleanup;
-
-	int start, end;
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {
-		float temp = xr[i] * yr[i] - xi[i] * yi[i];
-		xi[i] = xi[i] * yr[i] + xr[i] * yi[i];
+	for (i = 0; i < n; i++) {
+		float temp = sub_acc(mul_acc(xr[i], yr[i]), mul_acc(xi[i], yi[i]));
+		xi[i] = sum_acc(mul_acc(xi[i], yr[i]), mul_acc(xr[i], yi[i]));
 		xr[i] = temp;
 	}
-	incrementSemaphore(&secondSemaphore);
-	acquireSemaphore(&secondSemaphore);
-
-	if (!inverse_transform(xr, xi, n, procNumber));
-
+	if (!inverse_transform(xr, xi, n))
 		goto cleanup;
-
-	getVectorParcel(&start,&end, n, procNumber);
-	for (i = start; i < end; i++) {  // Scaling (because this FFT implementation omits it)
-		outreal[i] = xr[i] / n;
-		outimag[i] = xi[i] / n;
+	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
+		outreal[i] = div_acc(xr[i], n);
+		outimag[i] = div_acc(xi[i], n);
 	}
-	incrementSemaphore(&fourthSemaphore);
-	acquireSemaphore(&fourthSemaphore);
-
 	status = 1;
-
+	
 cleanup:
 	free(yi);
 	free(yr);
