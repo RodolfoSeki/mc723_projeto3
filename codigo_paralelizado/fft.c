@@ -27,7 +27,6 @@
 #include <string.h>
 #include "fft.h"
 
-
 #define SIN_ADDRESS 0x6500001
 #define COS_ADDRESS 0x6500000
 #define SUM_ADDRESS 0x6600000
@@ -48,15 +47,12 @@ volatile float *div_op=(float *)  DIV_ADDRESS;
 volatile float *write_a=(float *) WRITE_A;
 volatile float *write_b=(float *) WRITE_B;
 volatile int *lock = (int *) LOCK_ADDRESS;
-volatile int procCounter = 0;
 volatile int firstSemaphore = 0;
 volatile int secondSemaphore = 0;
 volatile int thirdSemaphore = 0;
 volatile int fourthSemaphore = 0;
 
-
-
-void AcquireLock(){
+void AcquireLock() {
 	while(*lock);
 }
 void ReleaseLock(){
@@ -109,8 +105,6 @@ float div_acc(float value_a, float value_b){
 	return *div_op;
 }
 
-
-
 float cos_mod_two(float k, int n){
 	return cos(2 * M_PI * k / n);
 }
@@ -118,7 +112,6 @@ float cos_mod_two(float k, int n){
 float sin_mod_two(float k, int n){
 	return sin(2 * M_PI * k / n);
 }
-
 
 float cos_mod(float i, int n){
 	return cos( M_PI * i * i / n);
@@ -145,12 +138,12 @@ int transform(float real[], float imag[], size_t n, int procNumber) {
 }
 
 
-int inverse_transform(float real[], float imag[], size_t n) {
-	return transform(imag, real, n);
+int inverse_transform(float real[], float imag[], size_t n, int procNumber) {
+	return transform(imag, real, n, procNumber);
 }
 
 
-int transform_radix2(float real[], float imag[], size_t n) {
+int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	// Variables
 	int status = 0;
 	unsigned int levels;
@@ -322,7 +315,7 @@ cleanup:
 }
 
 
-int convolve_real(const float x[], const float y[], float out[], size_t n) {
+int convolve_real(const float x[], const float y[], float out[], size_t n, int procNumber) {
 	float *ximag, *yimag, *zimag;
 	int status = 0;
 	ximag = calloc(n, sizeof(float));
@@ -331,7 +324,7 @@ int convolve_real(const float x[], const float y[], float out[], size_t n) {
 	if (ximag == NULL || yimag == NULL || zimag == NULL)
 		goto cleanup;
 
-	status = convolve_complex(x, ximag, y, yimag, out, zimag, n);
+	status = convolve_complex(x, ximag, y, yimag, out, zimag, n, procNumber);
 cleanup:
 	free(zimag);
 	free(yimag);
@@ -355,9 +348,9 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	if (xr == NULL || xi == NULL || yr == NULL || yi == NULL)
 		goto cleanup;
 
-	if (!transform(xr, xi, n))
+	if (!transform(xr, xi, n, procNumber))
 		goto cleanup;
-	if (!transform(yr, yi, n))
+	if (!transform(yr, yi, n, procNumber))
 		goto cleanup;
 
 	int start, end;
@@ -370,7 +363,8 @@ int convolve_complex(const float xreal[], const float ximag[], const float yreal
 	incrementSemaphore(&secondSemaphore);
 	acquireSemaphore(&secondSemaphore);
 
-	if (!inverse_transform(xr, xi, n))
+	if (!inverse_transform(xr, xi, n, procNumber));
+
 		goto cleanup;
 
 	getVectorParcel(&start,&end, n, procNumber);

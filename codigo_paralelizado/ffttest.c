@@ -31,24 +31,18 @@
 #include "input.h"
 #define NUMBER_OF_CORES
 #define LOCK_ADDRESS 0x6400000
-volatile int firstSemaphore = 0;
-volatile int secondSemaphore = 0;
-volatile int thirdSemaphore = 0;
 
 // Private function prototypes
-static void test_fft(int n);
+static void test_fft(int n, int procNumber);
 static void test_convolution(int n);
 static void naive_dft(const float *inreal, const float *inimag, float *outreal, float *outimag, int inverse, int n);
 static float log10_rms_err(const float *xreal, const float *ximag, const float *yreal, const float *yimag, int n);
 static float *random_reals(int n);
 static float *random_imag(int n);
 static void *memdup(const void *src, size_t n);
-
-
 static float max_log_error = -INFINITY;
 
-
-
+volatile int procCounter = 0;
 
 /* Main and test functions */
 
@@ -100,14 +94,11 @@ static void test_fft(int n, int procNumber) {
 		}
 	}
 
-
 	free(refoutreal);
 	free(refoutimag);
 	free(actualoutreal);
 	free(actualoutimag);
 }
-
-
 
 /* Naive reference computation functions */
 
@@ -127,9 +118,6 @@ static void naive_dft(const float *inreal, const float *inimag, float *outreal, 
 		outimag[k] = sumimag;
 	}
 }
-
-
-
 
 /* Utility functions */
 
