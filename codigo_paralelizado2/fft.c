@@ -58,11 +58,6 @@ volatile int fourthSemaphore = 0;
 volatile float areal[130];
 volatile float aimag[130];
 
-volatile float real_copy[130];
-volatile float imag_copy[130];
-volatile int flag1 = 0;
-volatile int flag2 = 0;
-
 void AcquireLock() {
 	while(*lock);
 }
@@ -78,6 +73,7 @@ void incrementSemaphore(volatile int* s){
 
 void acquireSemaphore(volatile int* s){
 	while((*s) < NUMBER_OF_CORES);
+	*s = 0;
 }
 
 void getVectorParcel(int * start, int * end, int size, int procNumber){
@@ -181,44 +177,19 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	if (SIZE_MAX / sizeof(float) < n / 2)
 		return 0;
 
-	AcquireLock();
-	if(flag1 == 0){
-		for(i = 0; i < n; i++){
-			real_copy[i] = real[i];
-			imag_copy[i] = imag[i];
-		}
-		flag1 = 1;
-	}
-	ReleaseLock();
 
-	int start, end;
-	getVectorParcel(&start,&end, n, procNumber);
-	// Bit-reversed addressing permutation
-	for (i = start; i < end; i++) {
+	for (i = 0; i < n; i++) {
 		size_t j = reverse_bits(i, levels);
 		if (j > i) {
-			float temp = real_copy[i];
-			real_copy[i] = real_copy[j];
+			float temp = real[i];
+			real[i] = real[j];
 			real_copy[j] = temp;
-			temp = imag_copy[i];
-			imag_copy[i] = imag_copy[j];
-			imag_copy[j] = temp;
+			temp = imag[i];
+			imag[i] = imag[j];
+			imag[j] = temp;
 		}
 	}
-	incrementSemaphore(&thirdSemaphore);
-	AcquireLock();
-	if (procNumber == 1)
-		printf("1 incrementou semaforo\n");
-	else
-		printf("2 incrementou semaforo\n");
-	ReleaseLock();
-	acquireSemaphore(&thirdSemaphore);
-
-	for(i = 0; i < n; i++){
-		real[i] = real_copy[i];
-		imag[i] = imag_copy[i];
-	}
-
+	
 
 	// Cooley-Tukey decimation-in-time radix-2 FFT
 	for (size = 2; size <= n; size *= 2) {
