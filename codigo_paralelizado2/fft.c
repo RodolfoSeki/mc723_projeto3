@@ -23,7 +23,6 @@
  */
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "fft.h"
@@ -53,10 +52,14 @@ volatile int firstSemaphore = 0;
 volatile int secondSemaphore = 0;
 volatile int thirdSemaphore = 0;
 volatile int fourthSemaphore = 0;
-
+volatile int fifthSemaphore = 0;
 
 volatile float areal[130];
 volatile float aimag[130];
+//volatile float breal[130];
+//volatile float bimag[130];
+volatile float dreal[130];
+volatile float dimag[130];
 
 void AcquireLock() {
 	while(*lock);
@@ -68,12 +71,19 @@ void ReleaseLock(){
 void incrementSemaphore(volatile int* s){
 	AcquireLock();
 	(*s)++;
+	//if (*s > NUMBER_OF_CORES)
+	//	(*s) = 1;
 	ReleaseLock();
 }
 
 void acquireSemaphore(volatile int* s){
 	while((*s) < NUMBER_OF_CORES);
-	*s = 0;
+}
+
+void whoAmI(int procNumber){
+	AcquireLock();
+	printf("procNumber = %d\n", procNumber);
+	ReleaseLock();
 }
 
 void getVectorParcel(int * start, int * end, int size, int procNumber){
@@ -177,41 +187,39 @@ int transform_radix2(float real[], float imag[], size_t n, int procNumber) {
 	if (SIZE_MAX / sizeof(float) < n / 2)
 		return 0;
 
-
+	// Bit-reversed addressing permutation
 	for (i = 0; i < n; i++) {
-		size_t j = reverse_bits(i, levels);
-		if (j > i) {
-			float temp = real[i];
-			real[i] = real[j];
-			real_copy[j] = temp;
-			temp = imag[i];
-			imag[i] = imag[j];
-			imag[j] = temp;
-		}
-	}
-	
+                size_t j = reverse_bits(i, levels);
+                if (j > i) {
+                        float temp = real[i];
+                        real[i] = real[j];
+                        real[j] = temp;
+                        temp = imag[i];
+                        imag[i] = imag[j];
+                        imag[j] = temp;
+                }
+        }
 
 	// Cooley-Tukey decimation-in-time radix-2 FFT
 	for (size = 2; size <= n; size *= 2) {
-		size_t halfsize = size / 2;
-		size_t tablestep = n / size;
-		for (i = 0; i < n; i += size) {
-			size_t j;
-			size_t k;
-			for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
-				float tpre =  real[j+halfsize] * cos_mod_two(k,n) + imag[j+halfsize] * sin_mod_two(k,n);
-				float tpim = -real[j+halfsize] * sin_mod_two(k,n) + imag[j+halfsize] * cos_mod_two(k,n);
-				real[j + halfsize] = real[j] - tpre;
-				imag[j + halfsize] = imag[j] - tpim;
-				real[j] += tpre;
-				imag[j] += tpim;
-			}
-		}
-		if (size == n)  // Prevent overflow in 'size *= 2'
-			break;
-	}
-	status = 1;
-
+                size_t halfsize = size / 2;
+                size_t tablestep = n / size;
+                for (i = 0; i < n; i += size) {
+                        size_t j;
+                        size_t k;
+                        for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
+                                float tpre =  real[j+halfsize] * cos_mod_two(k,n) + imag[j+halfsize] * sin_mod_two(k,n);
+                                float tpim = -real[j+halfsize] * sin_mod_two(k,n) + imag[j+halfsize] * cos_mod_two(k,n);
+                                real[j + halfsize] = real[j] - tpre;
+                                imag[j + halfsize] = imag[j] - tpim;
+                                real[j] += tpre;
+                                imag[j] += tpim;
+                        }
+                }
+                if (size == n)  // Prevent overflow in 'size *= 2'
+                        break;
+        }
+        status = 1;
 
 
 cleanup:
@@ -226,9 +234,9 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	int status = 0;
 	//float *cos_table, *sin_table;
 	//float *areal, *aimag;
-
 	float *breal, *bimag;
-	float *creal, *cimag;
+	//float *dreal, *dimag;
+
 	size_t m;
 	size_t size_n, size_m;
 	size_t i;
@@ -251,65 +259,60 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber) {
 	size_n = n * sizeof(float);
 	size_m = m * sizeof(float);
 
-	//areal = calloc(m, sizeof(float));
-	//aimag = calloc(m, sizeof(float));
-
-	breal = calloc(m, sizeof(float));
-	bimag = calloc(m, sizeof(float));
-	creal = malloc(size_m);
-	cimag = malloc(size_m);
-	if (areal == NULL || aimag == NULL
-			|| breal == NULL || bimag == NULL
-			|| creal == NULL || cimag == NULL)
-		goto cleanup;
+        breal = calloc(m, sizeof(float));
+        bimag = calloc(m, sizeof(float));
 
 
-	// Temporary vectors and preprocessing
+	// Zera os vetores a e b
 	int start, end;
 	getVectorParcel(&start,&end, n, procNumber);
 	for (i = start; i < end; i++) {
+	//for (i = 0; i < n; i++) {
+		areal[i] = 0;
+		aimag[i] = 0;
+	}
+	incrementSemaphore(&firstSemaphore);
+	acquireSemaphore(&firstSemaphore);
+
+	// Temporary vectors and preprocessing
+	getVectorParcel(&start,&end, n, procNumber);
+	for (i = start; i < end; i++) {
+	//AcquireLock();
+	//for (i = 0; i < n; i++) {
 		areal[i] =  real[i] * cos_mod(i,n) + imag[i] * sin_mod(i,n);
 		aimag[i] = -real[i] * sin_mod(i,n) + imag[i] * cos_mod(i,n);
 	}
-	incrementSemaphore(&thirdSemaphore);
-	AcquireLock();
-	if (procNumber == 1)
-		printf("1 incrementou semaforo\n");
-	else
-		printf("2 incrementou semaforo\n");
-	ReleaseLock();
-
-	acquireSemaphore(&thirdSemaphore);
-
-	AcquireLock();
-	if (procNumber == 1)
-		printf("1 passou\n");
-	else
-		printf("2 passou\n");
-	ReleaseLock();
+	//ReleaseLock();
+	incrementSemaphore(&secondSemaphore);
+	acquireSemaphore(&secondSemaphore);
 
 	breal[0] = cos_mod(0,n);
 	bimag[0] = sin_mod(0,n);
+
 	for (i = 1; i < n; i++) {
 		breal[i] = breal[m - i] = cos_mod(i,n);
 		bimag[i] = bimag[m - i] = sin_mod(i,n);
 	}
 
 	// Convolution
-	if (!convolve_complex(breal, bimag, creal, cimag, m, procNumber))
+	if (!convolve_complex(breal, bimag, m, procNumber))
 		goto cleanup;
 
 	// Postprocessing
+	//getVectorParcel(&start,&end, n, procNumber);
+	//for (i = start; i < end; i++) {
 	for (i = 0; i < n; i++) {
-		real[i] =  creal[i] * cos_mod(i,n) + cimag[i] * sin_mod(i,n);
-		imag[i] = -creal[i] * sin_mod(i,n) + cimag[i] * cos_mod(i,n);
+		real[i] =  dreal[i] * cos_mod(i,n) + dimag[i] * sin_mod(i,n);
+		imag[i] = -dreal[i] * sin_mod(i,n) + dimag[i] * cos_mod(i,n);
 	}
+	//incrementSemaphore(&thirdSemaphore);
+	//acquireSemaphore(&thirdSemaphore);
 	status = 1;
 
 	// Deallocation
 cleanup:
-	free(cimag);
-	free(creal);
+	//free(dimag);
+	//free(dreal);
 	free(bimag);
 	free(breal);
 	//free(aimag);
@@ -319,7 +322,7 @@ cleanup:
 
 
 
-int convolve_complex(const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n, int procNumber) {
+int convolve_complex(float* breal, float* bimag, size_t n, int procNumber) {
 	int status = 0;
 	size_t size;
 	size_t i;
@@ -327,10 +330,10 @@ int convolve_complex(const float yreal[], const float yimag[], float outreal[], 
 	if (SIZE_MAX / sizeof(float) < n)
 		return 0;
 	size = n * sizeof(float);
-	xr = memdup((const void*)areal, size);
-	xi = memdup((const void*)aimag, size);
-	yr = memdup((const void*)yreal, size);
-	yi = memdup((const void*)yimag, size);
+	xr = memdup(areal, size);
+	xi = memdup(aimag, size);
+	yr = memdup(breal, size);
+	yi = memdup(bimag, size);
 	if (xr == NULL || xi == NULL || yr == NULL || yi == NULL)
 		goto cleanup;
 
@@ -339,19 +342,29 @@ int convolve_complex(const float yreal[], const float yimag[], float outreal[], 
 	if (!transform(yr, yi, n, procNumber))
 		goto cleanup;
 
+
+	int start, end;
+	//getVectorParcel(&start,&end, n, procNumber);
+	//for (i = start; i < end; i++) {
 	for (i = 0; i < n; i++) {
 		float temp = xr[i] * yr[i] - xi[i] * yi[i];
 		xi[i] = xi[i] * yr[i] + xr[i] * yi[i];
 		xr[i] = temp;
 	}
+	//incrementSemaphore(&fourthSemaphore);
+	//acquireSemaphore(&fourthSemaphore);
 
 	if (!inverse_transform(xr, xi, n, procNumber))
 		goto cleanup;
 
-	for (i = 0; i < n; i++) {  // Scaling (because this FFT implementation omits it)
-		outreal[i] = xr[i] / n;
-		outimag[i] = xi[i] / n;
+	getVectorParcel(&start,&end, n, procNumber);
+	for (i = start; i < end; i++) {
+		dreal[i] = xr[i] / n;
+		dimag[i] = xi[i] / n;
 	}
+	incrementSemaphore(&fifthSemaphore);
+	acquireSemaphore(&fifthSemaphore);
+
 	status = 1;
 
 cleanup:
@@ -361,7 +374,6 @@ cleanup:
 	free(xr);
 	return status;
 }
-
 
 static size_t reverse_bits(size_t x, unsigned int n) {
 	size_t result = 0;

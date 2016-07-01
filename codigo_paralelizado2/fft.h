@@ -84,4 +84,4 @@ int transform_bluestein(float real[], float imag[], size_t n, int procNumber);
  * Computes the circular convolution of the given complex vectors. Each vector's length must be the same.
  * Returns 1 (true) if successful, 0 (false) otherwise (out of memory).
  */
-int convolve_complex( const float yreal[], const float yimag[], float outreal[], float outimag[], size_t n, int procNumber);
+int convolve_complex(float* breal, float* bimag, size_t n, int procNumber);
