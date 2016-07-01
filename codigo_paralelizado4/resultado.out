@@ -1,0 +1,538 @@
+
+        SystemC 2.3.1-Accellera --- Mar 31 2016 17:15:46
+        Copyright (c) 1996-2014 by all Contributors,
+        ALL RIGHTS RESERVED
+ArchC: Reading ELF application file: fft.mips
+ArchC: -------------------- Starting Simulation --------------------
+
+ArchC: Reading ELF application file: fft.mips
+ArchC: -------------------- Starting Simulation --------------------
+
+ArchC: Reading ELF application file: fft.mips
+ArchC: -------------------- Starting Simulation --------------------
+
+ArchC: Reading ELF application file: fft.mips
+ArchC: -------------------- Starting Simulation --------------------
+
+ArchC Error: Unidentified instruction. 
+PC = 8914
+ArchC: -------------------- Simulation Finished --------------------
+ArchC Error: Unidentified instruction. 
+PC = 9a14
+ArchC: -------------------- Simulation Finished --------------------
+ArchC Error: Unidentified instruction. 
+PC = 9a14
+ArchC: -------------------- Simulation Finished --------------------
+ArchC Error: Unidentified instruction. 
+PC = 9a14
+ArchC: -------------------- Simulation Finished --------------------
+
+Info: /OSCI/SystemC: Simulation stopped by user.
+ArchC: Simulation statistics
+    Times: 92.02 user, 0.07 system, 92.11 real
+    Number of instructions executed: 276264706
+    Simulation speed: 3002.22 K instr/s
+
+ArchC: Simulation statistics
+    Times: 92.02 user, 0.07 system, 92.11 real
+    Number of instructions executed: 363533272
+    Simulation speed: 3950.59 K instr/s
+
+ArchC: Simulation statistics
+    Times: 92.02 user, 0.07 system, 92.11 real
+    Number of instructions executed: 363566924
+    Simulation speed: 3950.95 K instr/s
+
+ArchC: Simulation statistics
+    Times: 92.02 user, 0.07 system, 92.11 real
+    Number of instructions executed: 364521317
+    Simulation speed: 3961.33 K instr/s
+
+[ArchC 2.1] Printing GLOBAL statistics from processor module mips:
+     INSTRUCTIONS : 276264226
+     SYSCALLS : 480
+[ArchC 2.1] Printing INSTRUCTION statistics from processor module mips:
+[ArchC 2.1] Printing statistics from instruction lb:
+     COUNT : 28662
+[ArchC 2.1] Printing statistics from instruction lbu:
+     COUNT : 88821
+[ArchC 2.1] Printing statistics from instruction lh:
+     COUNT : 8100
+[ArchC 2.1] Printing statistics from instruction lhu:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lw:
+     COUNT : 30516647
+[ArchC 2.1] Printing statistics from instruction lwl:
+     COUNT : 4626
+[ArchC 2.1] Printing statistics from instruction lwr:
+     COUNT : 4626
+[ArchC 2.1] Printing statistics from instruction sb:
+     COUNT : 23463
+[ArchC 2.1] Printing statistics from instruction sh:
+     COUNT : 479
+[ArchC 2.1] Printing statistics from instruction sw:
+     COUNT : 28827401
+[ArchC 2.1] Printing statistics from instruction swl:
+     COUNT : 4626
+[ArchC 2.1] Printing statistics from instruction swr:
+     COUNT : 4626
+[ArchC 2.1] Printing statistics from instruction addi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addiu:
+     COUNT : 35903524
+[ArchC 2.1] Printing statistics from instruction slti:
+     COUNT : 2441109
+[ArchC 2.1] Printing statistics from instruction sltiu:
+     COUNT : 4485121
+[ArchC 2.1] Printing statistics from instruction andi:
+     COUNT : 4761801
+[ArchC 2.1] Printing statistics from instruction ori:
+     COUNT : 2739240
+[ArchC 2.1] Printing statistics from instruction xori:
+     COUNT : 219910
+[ArchC 2.1] Printing statistics from instruction lui:
+     COUNT : 7123233
+[ArchC 2.1] Printing statistics from instruction add:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addu:
+     COUNT : 25426847
+[ArchC 2.1] Printing statistics from instruction sub:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction subu:
+     COUNT : 3394015
+[ArchC 2.1] Printing statistics from instruction slt:
+     COUNT : 209388
+[ArchC 2.1] Printing statistics from instruction sltu:
+     COUNT : 13088395
+[ArchC 2.1] Printing statistics from instruction instr_and:
+     COUNT : 2652426
+[ArchC 2.1] Printing statistics from instruction instr_or:
+     COUNT : 14688334
+[ArchC 2.1] Printing statistics from instruction instr_xor:
+     COUNT : 482947
+[ArchC 2.1] Printing statistics from instruction instr_nor:
+     COUNT : 310284
+[ArchC 2.1] Printing statistics from instruction nop:
+     COUNT : 14689127
+[ArchC 2.1] Printing statistics from instruction sll:
+     COUNT : 19444661
+[ArchC 2.1] Printing statistics from instruction srl:
+     COUNT : 14215643
+[ArchC 2.1] Printing statistics from instruction sra:
+     COUNT : 15521
+[ArchC 2.1] Printing statistics from instruction sllv:
+     COUNT : 619214
+[ArchC 2.1] Printing statistics from instruction srlv:
+     COUNT : 635119
+[ArchC 2.1] Printing statistics from instruction srav:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mult:
+     COUNT : 34556
+[ArchC 2.1] Printing statistics from instruction multu:
+     COUNT : 1399794
+[ArchC 2.1] Printing statistics from instruction div:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction divu:
+     COUNT : 34900
+[ArchC 2.1] Printing statistics from instruction mfhi:
+     COUNT : 1417056
+[ArchC 2.1] Printing statistics from instruction mthi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mflo:
+     COUNT : 1492439
+[ArchC 2.1] Printing statistics from instruction mtlo:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction j:
+     COUNT : 2426131
+[ArchC 2.1] Printing statistics from instruction jal:
+     COUNT : 4843159
+[ArchC 2.1] Printing statistics from instruction jr:
+     COUNT : 4847041
+[ArchC 2.1] Printing statistics from instruction jalr:
+     COUNT : 464
+[ArchC 2.1] Printing statistics from instruction beq:
+     COUNT : 16723469
+[ArchC 2.1] Printing statistics from instruction bne:
+     COUNT : 13187083
+[ArchC 2.1] Printing statistics from instruction blez:
+     COUNT : 470090
+[ArchC 2.1] Printing statistics from instruction bgtz:
+     COUNT : 3617
+[ArchC 2.1] Printing statistics from instruction bltz:
+     COUNT : 766286
+[ArchC 2.1] Printing statistics from instruction bgez:
+     COUNT : 1560205
+[ArchC 2.1] Printing statistics from instruction bltzal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction bgezal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sys_call:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction instr_break:
+     COUNT : 0
+[ArchC 2.1] Printing GLOBAL statistics from processor module mips:
+     INSTRUCTIONS : 363533270
+     SYSCALLS : 2
+[ArchC 2.1] Printing INSTRUCTION statistics from processor module mips:
+[ArchC 2.1] Printing statistics from instruction lb:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lbu:
+     COUNT : 87101
+[ArchC 2.1] Printing statistics from instruction lh:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lhu:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lw:
+     COUNT : 39904378
+[ArchC 2.1] Printing statistics from instruction lwl:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction lwr:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction sb:
+     COUNT : 196
+[ArchC 2.1] Printing statistics from instruction sh:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sw:
+     COUNT : 37873215
+[ArchC 2.1] Printing statistics from instruction swl:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction swr:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction addi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addiu:
+     COUNT : 47370253
+[ArchC 2.1] Printing statistics from instruction slti:
+     COUNT : 3259198
+[ArchC 2.1] Printing statistics from instruction sltiu:
+     COUNT : 5918265
+[ArchC 2.1] Printing statistics from instruction andi:
+     COUNT : 6278411
+[ArchC 2.1] Printing statistics from instruction ori:
+     COUNT : 3651374
+[ArchC 2.1] Printing statistics from instruction xori:
+     COUNT : 290323
+[ArchC 2.1] Printing statistics from instruction lui:
+     COUNT : 9470441
+[ArchC 2.1] Printing statistics from instruction add:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addu:
+     COUNT : 33753835
+[ArchC 2.1] Printing statistics from instruction sub:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction subu:
+     COUNT : 4389833
+[ArchC 2.1] Printing statistics from instruction slt:
+     COUNT : 258627
+[ArchC 2.1] Printing statistics from instruction sltu:
+     COUNT : 17422353
+[ArchC 2.1] Printing statistics from instruction instr_and:
+     COUNT : 3525444
+[ArchC 2.1] Printing statistics from instruction instr_or:
+     COUNT : 19427236
+[ArchC 2.1] Printing statistics from instruction instr_xor:
+     COUNT : 644042
+[ArchC 2.1] Printing statistics from instruction instr_nor:
+     COUNT : 411756
+[ArchC 2.1] Printing statistics from instruction nop:
+     COUNT : 18415948
+[ArchC 2.1] Printing statistics from instruction sll:
+     COUNT : 25802224
+[ArchC 2.1] Printing statistics from instruction srl:
+     COUNT : 18732324
+[ArchC 2.1] Printing statistics from instruction sra:
+     COUNT : 14889
+[ArchC 2.1] Printing statistics from instruction sllv:
+     COUNT : 837226
+[ArchC 2.1] Printing statistics from instruction srlv:
+     COUNT : 856028
+[ArchC 2.1] Printing statistics from instruction srav:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mult:
+     COUNT : 50247
+[ArchC 2.1] Printing statistics from instruction multu:
+     COUNT : 1898640
+[ArchC 2.1] Printing statistics from instruction div:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction divu:
+     COUNT : 50551
+[ArchC 2.1] Printing statistics from instruction mfhi:
+     COUNT : 1923698
+[ArchC 2.1] Printing statistics from instruction mthi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mflo:
+     COUNT : 2024719
+[ArchC 2.1] Printing statistics from instruction mtlo:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction j:
+     COUNT : 3181866
+[ArchC 2.1] Printing statistics from instruction jal:
+     COUNT : 6368300
+[ArchC 2.1] Printing statistics from instruction jr:
+     COUNT : 6368295
+[ArchC 2.1] Printing statistics from instruction jalr:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction beq:
+     COUNT : 22129434
+[ArchC 2.1] Printing statistics from instruction bne:
+     COUNT : 17211632
+[ArchC 2.1] Printing statistics from instruction blez:
+     COUNT : 611714
+[ArchC 2.1] Printing statistics from instruction bgtz:
+     COUNT : 172
+[ArchC 2.1] Printing statistics from instruction bltz:
+     COUNT : 1003980
+[ArchC 2.1] Printing statistics from instruction bgez:
+     COUNT : 2092518
+[ArchC 2.1] Printing statistics from instruction bltzal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction bgezal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sys_call:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction instr_break:
+     COUNT : 0
+[ArchC 2.1] Printing GLOBAL statistics from processor module mips:
+     INSTRUCTIONS : 363566922
+     SYSCALLS : 2
+[ArchC 2.1] Printing INSTRUCTION statistics from processor module mips:
+[ArchC 2.1] Printing statistics from instruction lb:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lbu:
+     COUNT : 87115
+[ArchC 2.1] Printing statistics from instruction lh:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lhu:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lw:
+     COUNT : 39908381
+[ArchC 2.1] Printing statistics from instruction lwl:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction lwr:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction sb:
+     COUNT : 200
+[ArchC 2.1] Printing statistics from instruction sh:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sw:
+     COUNT : 37875572
+[ArchC 2.1] Printing statistics from instruction swl:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction swr:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction addi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addiu:
+     COUNT : 47375706
+[ArchC 2.1] Printing statistics from instruction slti:
+     COUNT : 3259375
+[ArchC 2.1] Printing statistics from instruction sltiu:
+     COUNT : 5920053
+[ArchC 2.1] Printing statistics from instruction andi:
+     COUNT : 6278472
+[ArchC 2.1] Printing statistics from instruction ori:
+     COUNT : 3651413
+[ArchC 2.1] Printing statistics from instruction xori:
+     COUNT : 290425
+[ArchC 2.1] Printing statistics from instruction lui:
+     COUNT : 9470751
+[ArchC 2.1] Printing statistics from instruction add:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addu:
+     COUNT : 33760918
+[ArchC 2.1] Printing statistics from instruction sub:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction subu:
+     COUNT : 4388635
+[ArchC 2.1] Printing statistics from instruction slt:
+     COUNT : 258651
+[ArchC 2.1] Printing statistics from instruction sltu:
+     COUNT : 17425156
+[ArchC 2.1] Printing statistics from instruction instr_and:
+     COUNT : 3525609
+[ArchC 2.1] Printing statistics from instruction instr_or:
+     COUNT : 19427526
+[ArchC 2.1] Printing statistics from instruction instr_xor:
+     COUNT : 644022
+[ArchC 2.1] Printing statistics from instruction instr_nor:
+     COUNT : 411756
+[ArchC 2.1] Printing statistics from instruction nop:
+     COUNT : 18418681
+[ArchC 2.1] Printing statistics from instruction sll:
+     COUNT : 25804856
+[ArchC 2.1] Printing statistics from instruction srl:
+     COUNT : 18733512
+[ArchC 2.1] Printing statistics from instruction sra:
+     COUNT : 14891
+[ArchC 2.1] Printing statistics from instruction sllv:
+     COUNT : 837179
+[ArchC 2.1] Printing statistics from instruction srlv:
+     COUNT : 856009
+[ArchC 2.1] Printing statistics from instruction srav:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mult:
+     COUNT : 50247
+[ArchC 2.1] Printing statistics from instruction multu:
+     COUNT : 1898556
+[ArchC 2.1] Printing statistics from instruction div:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction divu:
+     COUNT : 50551
+[ArchC 2.1] Printing statistics from instruction mfhi:
+     COUNT : 1923614
+[ArchC 2.1] Printing statistics from instruction mthi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mflo:
+     COUNT : 2024635
+[ArchC 2.1] Printing statistics from instruction mtlo:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction j:
+     COUNT : 3181886
+[ArchC 2.1] Printing statistics from instruction jal:
+     COUNT : 6368596
+[ArchC 2.1] Printing statistics from instruction jr:
+     COUNT : 6368591
+[ArchC 2.1] Printing statistics from instruction jalr:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction beq:
+     COUNT : 22131701
+[ArchC 2.1] Printing statistics from instruction bne:
+     COUNT : 17212625
+[ArchC 2.1] Printing statistics from instruction blez:
+     COUNT : 611747
+[ArchC 2.1] Printing statistics from instruction bgtz:
+     COUNT : 172
+[ArchC 2.1] Printing statistics from instruction bltz:
+     COUNT : 1004014
+[ArchC 2.1] Printing statistics from instruction bgez:
+     COUNT : 2092539
+[ArchC 2.1] Printing statistics from instruction bltzal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction bgezal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sys_call:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction instr_break:
+     COUNT : 0
+[ArchC 2.1] Printing GLOBAL statistics from processor module mips:
+     INSTRUCTIONS : 364521315
+     SYSCALLS : 2
+[ArchC 2.1] Printing INSTRUCTION statistics from processor module mips:
+[ArchC 2.1] Printing statistics from instruction lb:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lbu:
+     COUNT : 87339
+[ArchC 2.1] Printing statistics from instruction lh:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lhu:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction lw:
+     COUNT : 40001304
+[ArchC 2.1] Printing statistics from instruction lwl:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction lwr:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction sb:
+     COUNT : 200
+[ArchC 2.1] Printing statistics from instruction sh:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sw:
+     COUNT : 37972756
+[ArchC 2.1] Printing statistics from instruction swl:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction swr:
+     COUNT : 5646
+[ArchC 2.1] Printing statistics from instruction addi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addiu:
+     COUNT : 47500776
+[ArchC 2.1] Printing statistics from instruction slti:
+     COUNT : 3260520
+[ArchC 2.1] Printing statistics from instruction sltiu:
+     COUNT : 5934445
+[ArchC 2.1] Printing statistics from instruction andi:
+     COUNT : 6296366
+[ArchC 2.1] Printing statistics from instruction ori:
+     COUNT : 3660341
+[ArchC 2.1] Printing statistics from instruction xori:
+     COUNT : 291093
+[ArchC 2.1] Printing statistics from instruction lui:
+     COUNT : 9496621
+[ArchC 2.1] Printing statistics from instruction add:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction addu:
+     COUNT : 33847326
+[ArchC 2.1] Printing statistics from instruction sub:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction subu:
+     COUNT : 4405222
+[ArchC 2.1] Printing statistics from instruction slt:
+     COUNT : 259327
+[ArchC 2.1] Printing statistics from instruction sltu:
+     COUNT : 17476717
+[ArchC 2.1] Printing statistics from instruction instr_and:
+     COUNT : 3533979
+[ArchC 2.1] Printing statistics from instruction instr_or:
+     COUNT : 19487864
+[ArchC 2.1] Printing statistics from instruction instr_xor:
+     COUNT : 645752
+[ArchC 2.1] Printing statistics from instruction instr_nor:
+     COUNT : 412921
+[ArchC 2.1] Printing statistics from instruction nop:
+     COUNT : 18452130
+[ArchC 2.1] Printing statistics from instruction sll:
+     COUNT : 25882587
+[ArchC 2.1] Printing statistics from instruction srl:
+     COUNT : 18790298
+[ArchC 2.1] Printing statistics from instruction sra:
+     COUNT : 14999
+[ArchC 2.1] Printing statistics from instruction sllv:
+     COUNT : 839417
+[ArchC 2.1] Printing statistics from instruction srlv:
+     COUNT : 858343
+[ArchC 2.1] Printing statistics from instruction srav:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mult:
+     COUNT : 50247
+[ArchC 2.1] Printing statistics from instruction multu:
+     COUNT : 1904462
+[ArchC 2.1] Printing statistics from instruction div:
+     COUNT : 78
+[ArchC 2.1] Printing statistics from instruction divu:
+     COUNT : 50551
+[ArchC 2.1] Printing statistics from instruction mfhi:
+     COUNT : 1929598
+[ArchC 2.1] Printing statistics from instruction mthi:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction mflo:
+     COUNT : 2030951
+[ArchC 2.1] Printing statistics from instruction mtlo:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction j:
+     COUNT : 3190469
+[ArchC 2.1] Printing statistics from instruction jal:
+     COUNT : 6383598
+[ArchC 2.1] Printing statistics from instruction jr:
+     COUNT : 6383593
+[ArchC 2.1] Printing statistics from instruction jalr:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction beq:
+     COUNT : 22191152
+[ArchC 2.1] Printing statistics from instruction bne:
+     COUNT : 17254937
+[ArchC 2.1] Printing statistics from instruction blez:
+     COUNT : 613539
+[ArchC 2.1] Printing statistics from instruction bgtz:
+     COUNT : 172
+[ArchC 2.1] Printing statistics from instruction bltz:
+     COUNT : 1007257
+[ArchC 2.1] Printing statistics from instruction bgez:
+     COUNT : 2099484
+[ArchC 2.1] Printing statistics from instruction bltzal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction bgezal:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction sys_call:
+     COUNT : 0
+[ArchC 2.1] Printing statistics from instruction instr_break:
+     COUNT : 0

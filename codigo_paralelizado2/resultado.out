@@ -13,14 +13,14 @@ ArchC: -------------------- Simulation Finished --------------------
 
 Info: /OSCI/SystemC: Simulation stopped by user.
 ArchC: Simulation statistics
-    Times: 281.75 user, 0.04 system, 281.82 real
+    Times: 325.57 user, 0.11 system, 325.68 real
     Number of instructions executed: 2329730547
-    Simulation speed: 8268.79 K instr/s
+    Simulation speed: 7155.85 K instr/s
 
 ArchC: Simulation statistics
-    Times: 281.75 user, 0.04 system, 281.82 real
+    Times: 325.57 user, 0.11 system, 325.68 real
     Number of instructions executed: 2288617177
-    Simulation speed: 8122.86 K instr/s
+    Simulation speed: 7029.57 K instr/s
 
 [ArchC 2.1] Printing GLOBAL statistics from processor module mips:
      INSTRUCTIONS : 2329728382

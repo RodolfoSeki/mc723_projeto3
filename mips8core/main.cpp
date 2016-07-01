@@ -121,13 +121,13 @@ int sc_main(int ac, char *av[])
   cerr << endl;
   mips_proc4.init(ac3, av3);
   cerr << endl;
-  mips_proc5.init(ac4, av);
+  mips_proc5.init(ac4, av4);
   cerr << endl;
-  mips_proc6.init(ac5, av1);
+  mips_proc6.init(ac5, av5);
   cerr << endl;
-  mips_proc7.init(ac6, av2);
+  mips_proc7.init(ac6, av6);
   cerr << endl;
-  mips_proc8.init(ac7, av3);
+  mips_proc8.init(ac7, av7);
   cerr << endl;
 
   mips_proc1.set_instr_batch_size(1);
